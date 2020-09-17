@@ -1,0 +1,98 @@
+---
+title: "FRS"
+author: "Bryan Kim"
+date: "9/15/2020"
+output: pdf_document
+---
+
+```{r}
+######################################################################
+#### ESTIMATING THE 10 YEAR CARDIOVASCULAR DISEASE RISK IN ADULTS ####
+######################################################################
+
+# Originating from the Framingham Risk Study, the model is based on a Cox Proportional Hazard Model
+
+### Required packages ###
+library(ggplot2); library(dplyr); library(tidyr)
+### Parameters ###
+f_base10_survival = 0.95012 # baseline 10-year survival for females
+m_base10_survival = 0.88936 # baseline 10-year survival for males
+
+f_rf <- list(log_age = 2.32888, log_totchol = 1.20904,log_hdl = -0.70833,log_SBP = 2.82263,Smoking = 0.52873,Diabetes = 0.69154) #  log of hazard ratio for each risk factor for females
+m_rf <- list(log_age = 3.06117, log_totchol = 1.12370,log_hdl = -0.93263,log_SBP = 1.99881,Smoking = 0.65451,Diabetes = 0.57367) #  log of hazard ratio for each risk factor for males 
+betas <- list(f=f_rf,m=m_rf) # nested list of f_rf and m_rf
+
+f_points=data.frame("points"=seq(-3,12),"age_low"=c(NA,NA,NA,30,NA,35,NA,40,45,NA,50,55,60,65,70,75),"age_high"=c(NA,NA,NA,34,NA,39,NA,44,49,NA,54,59,64,69,74,120),"HDL_low"=c(NA,60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(NA,1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,NA,0,160,NA,200,240,280,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,NA,160,199,NA,239,279,1000,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,NA,NA,120,130,NA,140,150,160,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,NA,NA,129,139,NA,149,159,1000,NA,NA,NA,NA), "Smoker"=c(NA,NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA))
+m_points=data.frame("points"=seq(-2,15),"age_low"=c(NA,NA,30,NA,35,NA,NA,40,45,NA,50,NA,55,60,65,NA,70,75),"age_high"=c(NA,NA,34,NA,39,NA,NA,44,49,NA,54,NA,59,64,69,NA,74,120),"HDL_low"=c(60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,0,160,200,240,280,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,160,199,239,279,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,120,130,140,160,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,129,139,149,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "Smoker"=c(NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA))
+
+
+################################################################################################################################################################
+# This gets the row where the input (30 in this example) satisfies the condition that it is between the age_low and age_high columns of the data frame f_points
+i=sapply(30, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)})
+# Delete all rows except row "i"
+keep_df=f_points[-(setdiff(1:16,i)),]
+################################################################################################################################################################
+
+get_frs = function(gender,age,HDL,TotChol,sbp,smoker,diabetic) {
+  list_pts=c() # Initiate list of points
+  #### FEMALES ####
+  if (gender == 1) {
+  ## GET POINTS FROM AGE ##
+  i=sapply(age, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_age <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]]) 
+  ## GET POINTS FROM HDL ##
+  i=sapply(HDL, function(p) { which(f_points$HDL_low <= p & f_points$HDL_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_HDL <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM TOTAL CHOLESTEROL ##
+  i=sapply(TotChol, function(p) { which(f_points$TotChol_low <= p & f_points$TotChol_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_TotChol <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SBP ##
+  i=sapply(sbp, function(p) { which(f_points$SBP_low <= p & f_points$SBP_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_SBP <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SMOKER ##
+  if (smoker == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  f_smoke <<- 3
+  ## GET POINTS FROM DIABETIC ##
+  if (diabetic == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+  f_diabetic <<- 4
+  }
+  #### MALES ####
+ else {
+    ## GET POINTS FROM AGE ##
+  i=sapply(age, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_age <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]]) 
+  ## GET POINTS FROM HDL ##
+  i=sapply(HDL, function(p) { which(m_points$HDL_low <= p & m_points$HDL_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_HDL <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM TOTAL CHOLESTEROL ##
+  i=sapply(TotChol, function(p) { which(m_points$TotChol_low <= p & m_points$TotChol_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_TotChol <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SBP ##
+  i=sapply(sbp, function(p) { which(m_points$SBP_low <= p & m_points$SBP_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_SBP <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SMOKER ##
+  if (smoker == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+  m_smoke <<- 4
+  ## GET POINTS FROM DIABETIC ##
+  if (diabetic == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  m_diabetic <<- 3
+  }
+  return(sum(list_pts))
+}
+
+################################################################################################################################################################
+# THE AVERAGES IN THE COX MODEL DEPEND ON OUR PARTICULAR SAMPLE AND THE CHARACTERISTICS OF THAT SAMPLE.
+
+### COX MODEL ESTIMATE ###
+# FEMALES
+# arg1_f = betas$f$log_age*log(age)+betas$f$log_totchol*log(TotChol)+betas$f$log_hdl*log(HDL)+betas$f$log_SBP*log(sbp)+betas$f$Smoking*smoker+betas$f$Diabetes*diabetic
+# arg2_f = 0 # THE MEAN VALUES HERE #
+# 
+# rho_f = 1-(f_base10_survival^exp(arg1_f - arg2_f))
+# # MALES
+# arg1_m = betas$m$log_age*log(age)+betas$m$log_totchol*log(TotChol)+betas$m$log_hdl*log(HDL)+betas$m$log_SBP*log(sbp)+betas$m$Smoking*smoker+betas$m$Diabetes*diabetic
+# arg2_m= 0  # THE MEAN VALUES HERE #
+# 
+# rho_m = 1-(m_base10_survival^exp(arg1_m - arg2_m))
+```
+
