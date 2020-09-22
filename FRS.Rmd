@@ -96,3 +96,6 @@ get_frs = function(gender,age,HDL,TotChol,sbp,smoker,diabetic) {
 # rho_m = 1-(m_base10_survival^exp(arg1_m - arg2_m))
 ```
 
+
+
+
