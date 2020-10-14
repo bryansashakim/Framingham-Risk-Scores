@@ -13,7 +13,7 @@ output: pdf_document
 # Originating from the Framingham Risk Study, the model is based on a Cox Proportional Hazard Model
 
 ### Required packages ###
-library(ggplot2); library(dplyr); library(tidyr)
+library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign)
 ### Parameters ###
 f_base10_survival = 0.95012 # baseline 10-year survival for females
 m_base10_survival = 0.88936 # baseline 10-year survival for males
@@ -33,33 +33,20 @@ i=sapply(30, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)
 keep_df=f_points[-(setdiff(1:16,i)),]
 ################################################################################################################################################################
 
-get_frs = function(gender,age,HDL,TotChol,sbp,smoker,diabetic) {
+test_func = function(age) {
   list_pts=c() # Initiate list of points
-  #### FEMALES ####
-  if (gender == 1) {
-  ## GET POINTS FROM AGE ##
-  i=sapply(age, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_age <<- keep_df[[1]]
-  list_pts=append(list_pts,keep_df[[1]]) 
-  ## GET POINTS FROM HDL ##
-  i=sapply(HDL, function(p) { which(f_points$HDL_low <= p & f_points$HDL_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_HDL <<- keep_df[[1]]
-  list_pts=append(list_pts,keep_df[[1]])
-  ## GET POINTS FROM TOTAL CHOLESTEROL ##
-  i=sapply(TotChol, function(p) { which(f_points$TotChol_low <= p & f_points$TotChol_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_TotChol <<- keep_df[[1]]
-  list_pts=append(list_pts,keep_df[[1]])
-  ## GET POINTS FROM SBP ##
-  i=sapply(sbp, function(p) { which(f_points$SBP_low <= p & f_points$SBP_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_SBP <<- keep_df[[1]]
-  list_pts=append(list_pts,keep_df[[1]])
-  ## GET POINTS FROM SMOKER ##
-  if (smoker == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
-  f_smoke <<- 3
-  ## GET POINTS FROM DIABETIC ##
-  if (diabetic == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
-  f_diabetic <<- 4
-  }
+  i=sapply(age, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)})
+  return(i)
+}
+test_func=Vectorize(test_func)
+test$test <- test_func(test$riagendr)
+
+get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
+  list_pts=c() # Initiate list of points
   #### MALES ####
- else {
-    ## GET POINTS FROM AGE ##
-  i=sapply(age, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_age <<- keep_df[[1]]
+  if (riagendr == 1) {
+   ## GET POINTS FROM AGE ##
+  i=sapply(ridageyr, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_age <<- keep_df[[1]]
   list_pts=append(list_pts,keep_df[[1]]) 
   ## GET POINTS FROM HDL ##
   i=sapply(HDL, function(p) { which(m_points$HDL_low <= p & m_points$HDL_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_HDL <<- keep_df[[1]]
@@ -71,11 +58,32 @@ get_frs = function(gender,age,HDL,TotChol,sbp,smoker,diabetic) {
   i=sapply(sbp, function(p) { which(m_points$SBP_low <= p & m_points$SBP_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_SBP <<- keep_df[[1]]
   list_pts=append(list_pts,keep_df[[1]])
   ## GET POINTS FROM SMOKER ##
-  if (smoker == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
-  m_smoke <<- 4
+  if (isTRUE(smoker == 3) | is.na(smoker)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+  # m_smoke <<- 4
   ## GET POINTS FROM DIABETIC ##
-  if (diabetic == 2) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
-  m_diabetic <<- 3
+  if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  # m_diabetic <<- 3
+  }
+  #### FEMALES ####
+ else {
+     ## GET POINTS FROM AGE ##
+  i=sapply(ridageyr, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_age <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]]) 
+  ## GET POINTS FROM HDL ##
+  i=sapply(HDL, function(p) { which(f_points$HDL_low <= p & f_points$HDL_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_HDL <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM TOTAL CHOLESTEROL ##
+  i=sapply(TotChol, function(p) { which(f_points$TotChol_low <= p & f_points$TotChol_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_TotChol <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SBP ##
+  i=sapply(sbp, function(p) { which(f_points$SBP_low <= p & f_points$SBP_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_SBP <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SMOKER ##
+  if (isTRUE(smoker == 3) | is.na(smoker)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  # f_smoke <<- 3
+  ## GET POINTS FROM DIABETIC ##
+  if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+  # f_diabetic <<- 4
   }
   return(sum(list_pts))
 }
@@ -96,6 +104,20 @@ get_frs = function(gender,age,HDL,TotChol,sbp,smoker,diabetic) {
 # rho_m = 1-(m_base10_survival^exp(arg1_m - arg2_m))
 ```
 
+```{r}
+##########################################
+## TESTING FUNCTION ON NHANES 1999-2000 ##
+##########################################
+test=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_full.dta")
+
+## Dropping rows where values of our risk factor variables are NA
+test= test[complete.cases(test[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smq040","lbxgh")]),]
+
+test$frs = mapply(get_frs, test$riagendr,test$ridageyr,test$lbdhdl,test$lbxtc,test$bpxsar,test$smq040,test$lbxgh)
+
+write.dta(test, "/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_frs.dta")
+
+```
 
 
 
