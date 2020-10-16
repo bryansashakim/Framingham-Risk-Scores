@@ -115,7 +115,7 @@ test= test[complete.cases(test[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxs
 
 test$frs = mapply(get_frs, test$riagendr,test$ridageyr,test$lbdhdl,test$lbxtc,test$bpxsar,test$smq040,test$lbxgh)
 
-write.dta(test, "/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_frs.dta")
+write_dta(test, "/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_frs.dta")
 
 ```
 
