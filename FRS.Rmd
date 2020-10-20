@@ -58,7 +58,7 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
   i=sapply(sbp, function(p) { which(m_points$SBP_low <= p & m_points$SBP_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_SBP <<- keep_df[[1]]
   list_pts=append(list_pts,keep_df[[1]])
   ## GET POINTS FROM SMOKER ##
-  if (isTRUE(smoker == 3) | is.na(smoker)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+  if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
   # m_smoke <<- 4
   ## GET POINTS FROM DIABETIC ##
   if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
@@ -79,7 +79,7 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
   i=sapply(sbp, function(p) { which(f_points$SBP_low <= p & f_points$SBP_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_SBP <<- keep_df[[1]]
   list_pts=append(list_pts,keep_df[[1]])
   ## GET POINTS FROM SMOKER ##
-  if (isTRUE(smoker == 3) | is.na(smoker)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
   # f_smoke <<- 3
   ## GET POINTS FROM DIABETIC ##
   if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
@@ -105,19 +105,114 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
 ```
 
 ```{r}
+# order: riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic
 ##########################################
-## TESTING FUNCTION ON NHANES 1999-2000 ##
+##               1999-2000              ##
 ##########################################
-test=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_full.dta")
-
+nhanes1999_2000=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_full.dta")
+nhanes1999_2000=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_1999_2000_full.dta")
 ## Dropping rows where values of our risk factor variables are NA
-test= test[complete.cases(test[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smq040","lbxgh")]),]
+nhanes1999_2000= nhanes1999_2000[complete.cases(nhanes1999_2000[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$smoke_sts,nhanes1999_2000$lbxgh)
 
-test$frs = mapply(get_frs, test$riagendr,test$ridageyr,test$lbdhdl,test$lbxtc,test$bpxsar,test$smq040,test$lbxgh)
+write_dta(nhanes1999_2000, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_1999_2000_frs.dta")
 
-write_dta(test, "/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_frs.dta")
+##########################################
+##               2000-2001              ##
+##########################################
+nhanes2000_2001=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2000_2001_full.dta")
+nhanes2000_2001=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_1999_2000_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2000_2001= nhanes2000_2001[complete.cases(nhanes2000_2001[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes2000_2001$frs = mapply(get_frs, nhanes2000_2001$riagendr,nhanes2000_2001$ridageyr,nhanes2000_2001$lbdhdl,nhanes2000_2001$lbxtc,nhanes2000_2001$bpxsar,nhanes2000_2001$smoke_sts,nhanes2000_2001$lbxgh)
+
+write_dta(nhanes2000_2001, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2000_2001_frs.dta")
+
+##########################################
+##               2003_20034             ##
+##########################################
+nhanes2003_2004=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2003_2004_full.dta")
+nhanes2003_2004=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2003_2004_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2003_2004= nhanes2003_2004[complete.cases(nhanes2003_2004[ , c("riagendr","ridageyr","lbxhdd","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes2003_2004$frs = mapply(get_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$lbxhdd,nhanes2003_2004$lbxtc,nhanes2003_2004$bpxsar,nhanes2003_2004$smoke_sts,nhanes2003_2004$lbxgh)
+
+write_dta(nhanes2003_2004, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2003_2004_frs.dta")
+
+##########################################
+##               2005_2006            ##
+##########################################
+nhanes2005_2006=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2005_2006_full.dta")
+nhanes2005_2006=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2005_2006_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2005_2006= nhanes2005_2006[complete.cases(nhanes2005_2006[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2005_2006$frs = mapply(get_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$lbdhdd,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$smoke_sts,nhanes2005_2006$lbxgh)
+
+write_dta(nhanes2005_2006, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2005_2006_frs.dta")
+
+##########################################
+##               2007_2008          ##
+##########################################
+nhanes2007_2008=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2007_2008_full.dta")
+nhanes2007_2008=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2007_2008_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2007_2008= nhanes2007_2008[complete.cases(nhanes2007_2008[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2007_2008$frs = mapply(get_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$lbdhdd,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$smoke_sts,nhanes2007_2008$lbxgh)
+
+write_dta(nhanes2007_2008, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2007_2008_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2009_2010=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2000_2010_full.dta")
+nhanes2009_2010=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2009_2010_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2009_2010= nhanes2009_2010[complete.cases(nhanes2009_2010[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2009_2010$frs = mapply(get_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$lbdhdd,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$smoke_sts,nhanes2009_2010$lbxgh)
+
+write_dta(nhanes2009_2010, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2009_2010_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2011_2012=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2011_2012_full.dta")
+nhanes2011_2012=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2011_2012_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2011_2012= nhanes2011_2012[complete.cases(nhanes2011_2012[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2011_2012$frs = mapply(get_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$lbdhdd,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$smoke_sts,nhanes2011_2012$lbxgh)
+
+write_dta(nhanes2011_2012, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2011_2012_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2013_2014=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2013_2014_full.dta")
+nhanes2013_2014=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2013_2014_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2013_2014= nhanes2013_2014[complete.cases(nhanes2013_2014[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$lbdhdd,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$smoke_sts,nhanes2013_2014$lbxgh)
+
+write_dta(nhanes2013_2014, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2013_2014_frs.dta")
 
 ```
 
 
+```{r}
+##########################################
+###          Summary Statistics        ###
+##########################################
+
+filenames = list.files("/homes/nber/kimcwa/Documents/casedeaton/FRS",pattern = "_frs.dta",full.names = TRUE)
+df_list = lapply(filenames,read_dta)
+lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
+
+
+
+
+
+
+
+
+
+```
 
