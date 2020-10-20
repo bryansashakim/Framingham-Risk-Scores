@@ -118,15 +118,15 @@ nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$r
 write_dta(nhanes1999_2000, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_1999_2000_frs.dta")
 
 ##########################################
-##               2000-2001              ##
+##               2001-20012             ##
 ##########################################
-nhanes2000_2001=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2000_2001_full.dta")
-nhanes2000_2001=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_1999_2000_full.dta")
+nhanes2001_2002=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2001_2002_full.dta")
+nhanes2001_2002=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2001_2002_full.dta")
 ## Dropping rows where values of our risk factor variables are NA
-nhanes2000_2001= nhanes2000_2001[complete.cases(nhanes2000_2001[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
-nhanes2000_2001$frs = mapply(get_frs, nhanes2000_2001$riagendr,nhanes2000_2001$ridageyr,nhanes2000_2001$lbdhdl,nhanes2000_2001$lbxtc,nhanes2000_2001$bpxsar,nhanes2000_2001$smoke_sts,nhanes2000_2001$lbxgh)
+nhanes2001_2002= nhanes2001_2002[complete.cases(nhanes2001_2002[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes2001_2002$frs = mapply(get_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$lbdhdl,nhanes2001_2002$lbxtc,nhanes2001_2002$bpxsar,nhanes2001_2002$smoke_sts,nhanes2001_2002$lbxgh)
 
-write_dta(nhanes2000_2001, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2000_2001_frs.dta")
+write_dta(nhanes2001_2002, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2001_2002_frs.dta")
 
 ##########################################
 ##               2003_20034             ##
@@ -206,13 +206,26 @@ filenames = list.files("/homes/nber/kimcwa/Documents/casedeaton/FRS",pattern = "
 df_list = lapply(filenames,read_dta)
 lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
 
+##### BY EDUCATION #####
+# <HS 
+lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# HS
+lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 == 3);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# Some College
+lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 == 4);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# College Grad
+lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 == 5);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
-
-
-
-
-
-
-
+##### BY AGE #####
+# 45-54
+lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# 55-64
+lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# 65-74
+lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# 75-84
+lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=75 & x$ridageyr <=84);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# 85+
+lapply(df_list, function(x) {temp = filter(x,x$ridageyr >= 85);print(weighted.mean(temp$frs,temp$wtint2yr))})
 ```
 
