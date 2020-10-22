@@ -194,6 +194,105 @@ nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$r
 
 write_dta(nhanes2013_2014, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2013_2014_frs.dta")
 
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2015_2016=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2015_2016_full.dta")
+nhanes2015_2016=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2015_2016_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2015_2016= nhanes2015_2016[complete.cases(nhanes2015_2016[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2015_2016$frs = mapply(get_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$lbdhdd,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$smoke_sts,nhanes2015_2016$lbxgh)
+
+write_dta(nhanes2015_2016, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2015_2016_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2017_2018=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2017_2018_full.dta")
+nhanes2017_2018=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2017_2018_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$lbdhdd,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$smoke_sts,nhanes2017_2018$lbxgh)
+
+write_dta(nhanes2017_2018, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2017_2018_frs.dta")
+```
+
+```{r}
+##########################################
+###     Age-Sex Adjusted Calculations  ###
+##########################################
+
+# FROM DAVID:
+#   Another way to do an ‘all’ calculation is to age-sex adjust. Here’s the easiest way to do that:
+#   We have weights for each person, call it wi.
+#   Form the age-sex group for each person (45-49M, 45-49F, 50-54M, …)
+#   To age-sex adjust, let’s choose a standard year, 2009-2010.
+#   Form the sum of weights for each age-sex group in 2009-10. Call that w_as_2009_10
+#   Form the sum of weights for each age-sex group in each other year. Call that w_as_t.
+#   Multiply each person’s weight by (w_as_2009_10/w_as_t).
+
+## FORMING AGE-SEX GROUPS FOR EACH PERSON
+# 45-54, MALES & FEMALES
+#lapply(df_list, function(x) {mutate(temp, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
+temp = df_list %>% lapply(function(x) {mutate(x, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 2, 1, 0))})
+# 55-64, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M2 = ifelse(ridageyr >= 55 & ridageyr <= 64 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(ridageyr >= 55 & ridageyr <= 64 & riagendr == 2, 1, 0))})
+# 65-74, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(ridageyr >= 65 & ridageyr <= 74 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(ridageyr >= 65 & ridageyr <= 74 & riagendr == 2, 1, 0))})
+# 75+, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(ridageyr >= 75 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(ridageyr >= 75 & riagendr == 2, 1, 0))})
+
+
+## FOR 2009-2010, FORM SUM OF WEIGHTS FOR EACH AGE-SEX GROUP - call it w_as_2009_2010
+w_M1_2009_2010 = temp[[6]] %>% filter(M1 == 1) %>% select(wtint2yr) %>% sum
+w_F1_2009_2010 = temp[[6]] %>% filter(F1 == 1) %>% select(wtint2yr) %>% sum
+w_M2_2009_2010 = temp[[6]] %>% filter(M2 == 1) %>% select(wtint2yr) %>% sum
+w_F2_2009_2010 = temp[[6]] %>% filter(F2 == 1) %>% select(wtint2yr) %>% sum
+w_M3_2009_2010 = temp[[6]] %>% filter(M3 == 1) %>% select(wtint2yr) %>% sum
+w_F3_2009_2010 = temp[[6]] %>% filter(F3 == 1) %>% select(wtint2yr) %>% sum
+w_M4_2009_2010 = temp[[6]] %>% filter(M4 == 1) %>% select(wtint2yr) %>% sum
+w_F4_2009_2010 = temp[[6]] %>% filter(F4 == 1) %>% select(wtint2yr) %>% sum
+
+## FORM SUM OF WEIGHT FOR EACH AGE-SEX GROUP IN EACH OTHER YEAR 
+index = 1
+for (year in c("1999_2000","2001_2002","2003_2004","2005_2006","2007_2008","2011_2012","2013_2014","2015_2016","2017_2018"))
+
+  {
+  for (sex in c("M","F")) {
+    for (cat in c(1,2,3,4)) {
+      assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[index]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(wtint2yr) %>% sum)
+  }
+  }
+    if (index == 5) {index = 7} else {index = index + 1}
+}
+
+
+
+## MULTIPLY EACH PERSON'S WEIGHT BY (w_as_2009_10/w_as_t)
+
+
+temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(wtint2yr)*(eval(w_M1_1999_2000)/(eval(w_M1_1999_2000))),
+                                            F1 == 1 ~ eval(wtint2yr)*(eval(w_F1_1999_2000)/(eval(w_F1_1999_2000))),
+                                            M2 == 1 ~ eval(wtint2yr)*(eval(w_M2_1999_2000)/(eval(w_M2_1999_2000))),
+                                            F2 == 1 ~ eval(wtint2yr)*(eval(w_F2_1999_2000)/(eval(w_F2_1999_2000))),
+                                            M3 == 1 ~ eval(wtint2yr)*(eval(w_M3_1999_2000)/(eval(w_M3_1999_2000))),
+                                            F3 == 1 ~ eval(wtint2yr)*(eval(w_F3_1999_2000)/(eval(w_F3_1999_2000))),
+                                            M4 == 1 ~ eval(wtint2yr)*(eval(w_M4_1999_2000)/(eval(w_M4_1999_2000))),
+                                            F4 == 1 ~ eval(wtint2yr)*(eval(w_F4_1999_2000)/(eval(w_F4_1999_2000))),
+                                            TRUE ~ NA_real_))
+ 
+sum(temp[[10]][which(temp[[10]][,193]==1),195])
+which(colnames(temp[[10]])=="M4")
+which(colnames(temp[[10]])=="wt")
+
+
+# "ALL" AGE-SEX ADJUSTED
+lapply(temp, function(x) print(weighted.mean(x$frs,x$wt)))
+
 ```
 
 
@@ -204,15 +303,20 @@ write_dta(nhanes2013_2014, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2013_
 
 filenames = list.files("/homes/nber/kimcwa/Documents/casedeaton/FRS",pattern = "_frs.dta",full.names = TRUE)
 df_list = lapply(filenames,read_dta)
+
+# "ALL"
 lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
 
 ##### BY EDUCATION #####
 # <HS 
 lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(temp$frs,temp$wtint2yr))})
+
 # HS
 lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 == 3);print(weighted.mean(temp$frs,temp$wtint2yr))})
+
 # Some College
 lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 == 4);print(weighted.mean(temp$frs,temp$wtint2yr))})
+
 # College Grad
 lapply(df_list, function(x) {temp = filter(x,x$dmdeduc2 == 5);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
@@ -223,9 +327,13 @@ lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=45 & x$ridageyr <=54);
 lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 65-74
 lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(temp$frs,temp$wtint2yr))})
-# 75-84
-lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=75 & x$ridageyr <=84);print(weighted.mean(temp$frs,temp$wtint2yr))})
+# 75+
+lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 85+
 lapply(df_list, function(x) {temp = filter(x,x$ridageyr >= 85);print(weighted.mean(temp$frs,temp$wtint2yr))})
+```
+
+```{r}
+
 ```
 
