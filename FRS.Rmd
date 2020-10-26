@@ -215,6 +215,16 @@ nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr",
 nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$lbdhdd,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$smoke_sts,nhanes2017_2018$lbxgh)
 
 write_dta(nhanes2017_2018, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2017_2018_frs.dta")
+
+##########################################
+##               NHANES III          ##
+##########################################
+nhanesIII=read_dta("/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanesIII= nhanesIII[complete.cases(nhanesIII[ , c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","GHP")]),]
+nhanesIII$frs = mapply(get_frs, nhanesIII$HSSEX,nhanesIII$HSAGEIR,nhanesIII$HDP,nhanesIII$TCP,nhanesIII$PEPMNK1R,nhanesIII$smoke_sts,nhanesIII$GHP)
+
+write_dta(nhanesIII, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_frs.dta")
 ```
 
 ```{r}
@@ -245,6 +255,7 @@ temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(ridageyr >= 65 & ridag
 # 75+, MALES & FEMALES
 temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(ridageyr >= 75 & riagendr == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(ridageyr >= 75 & riagendr == 2, 1, 0))})
+
 
 
 ## FOR 2009-2010, FORM SUM OF WEIGHTS FOR EACH AGE-SEX GROUP - call it w_as_2009_2010
@@ -293,6 +304,49 @@ which(colnames(temp[[10]])=="wt")
 # "ALL" AGE-SEX ADJUSTED
 lapply(temp, function(x) print(weighted.mean(x$frs,x$wt)))
 
+
+############################################################
+#FOR NHANES III
+temp = nhanesIII
+temp = mutate(temp, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))
+temp = mutate(temp, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))
+temp = mutate(temp, M2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 1, 1, 0))
+temp = mutate(temp, F2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 2, 1, 0))
+temp = mutate(temp, M3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 1, 1, 0))
+temp = mutate(temp, F3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 2, 1, 0))
+temp = mutate(temp, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))
+temp = mutate(temp, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))
+
+year = "nhanesIII"
+for (sex in c("M","F")) {
+    for (cat in c(1,2,3,4)) {
+      assign(paste("w_",sex,cat,"_",year,sep = ""),temp %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(WTPFHX6) %>% sum)
+  }
+}
+w_M1_nhanesIII = temp %>% filter(M1 == 1) %>% select(WTPFHX6) %>% sum
+w_F1_nhanesIII= temp %>% filter(F1 == 1) %>% select(WTPFHX6) %>% sum
+w_M2_nhanesIII= temp %>% filter(M2 == 1) %>% select(WTPFHX6) %>% sum
+w_F2_nhanesIII= temp %>% filter(F2 == 1) %>% select(WTPFHX6) %>% sum
+w_M3_nhanesIII= temp %>% filter(M3 == 1) %>% select(WTPFHX6) %>% sum
+w_F3_nhanesIII= temp %>% filter(F3 == 1) %>% select(WTPFHX6) %>% sum
+w_M4_nhanesIII= temp %>% filter(M4 == 1) %>% select(WTPFHX6) %>% sum
+w_F4_nhanesIII= temp %>% filter(F4 == 1) %>% select(WTPFHX6) %>% sum
+
+
+
+temp = mutate(temp,wt = case_when(M1 == 1 ~ eval(WTPFHX6)*(eval(w_M1_1999_2000)/(eval(w_M1_nhanesIII))),
+                                            F1 == 1 ~ eval(WTPFHX6)*(eval(w_F1_1999_2000)/(eval(w_F1_nhanesIII))),
+                                            M2 == 1 ~ eval(WTPFHX6)*(eval(w_M2_1999_2000)/(eval(w_M2_nhanesIII))),
+                                            F2 == 1 ~ eval(WTPFHX6)*(eval(w_F2_1999_2000)/(eval(w_F2_nhanesIII))),
+                                            M3 == 1 ~ eval(WTPFHX6)*(eval(w_M3_1999_2000)/(eval(w_M3_nhanesIII))),
+                                            F3 == 1 ~ eval(WTPFHX6)*(eval(w_F3_1999_2000)/(eval(w_F3_nhanesIII))),
+                                            M4 == 1 ~ eval(WTPFHX6)*(eval(w_M4_1999_2000)/(eval(w_M4_nhanesIII))),
+                                            F4 == 1 ~ eval(WTPFHX6)*(eval(w_F4_1999_2000)/(eval(w_F4_nhanesIII))),
+                                            TRUE ~ NA_real_))
+
+# "ALL" AGE-SEX ADJUSTED
+weighted.mean(temp$frs,temp$wt)
+############################################################
 ```
 
 
@@ -303,6 +357,7 @@ lapply(temp, function(x) print(weighted.mean(x$frs,x$wt)))
 
 filenames = list.files("/homes/nber/kimcwa/Documents/casedeaton/FRS",pattern = "_frs.dta",full.names = TRUE)
 df_list = lapply(filenames,read_dta)
+
 
 # "ALL"
 lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
@@ -331,6 +386,41 @@ lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);
 lapply(df_list, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 85+
 lapply(df_list, function(x) {temp = filter(x,x$ridageyr >= 85);print(weighted.mean(temp$frs,temp$wtint2yr))})
+
+
+############################################################
+#FOR NHANES III
+nhanesIII_file = list.files("/homes/nber/kimcwa/Documents/casedeaton/FRS",pattern = "III_frs.dta",full.names = TRUE)
+df_listIII = lapply(nhanesIII_file,read_dta)
+
+weighted.mean(nhanesIII$frs,nhanesIII$WTPFHX6)
+##### BY EDUCATION #####
+# <HS 
+# <HS 
+lapply(df_listIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+# HS
+lapply(df_listIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+# Some College
+lapply(df_listIII, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+# College Grad
+lapply(df_listIII, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+##### BY AGE #####
+# 45-54
+lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+# 55-64
+lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+# 65-74
+lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+# 75+
+lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >=75);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+# 85+
+lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+############################################################
 ```
 
 ```{r}
