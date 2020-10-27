@@ -227,6 +227,8 @@ nhanesIII$frs = mapply(get_frs, nhanesIII$HSSEX,nhanesIII$HSAGEIR,nhanesIII$HDP,
 nhanesIIIP1 = filter(nhanesIII,SDPPHASE==1)
 #PHASE 2
 nhanesIIIP2 = filter(nhanesIII,SDPPHASE==2)
+nhanesIIIP1 = filter(nhanesIIIP1,GHP != 8888)
+nhanesIIIP2 = filter(nhanesIIIP2,GHP != 8888)
 write_dta(nhanesIII, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_12_frs.dta")
 write_dta(nhanesIIIP1, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_P1x_frs.dta")
 write_dta(nhanesIIIP2, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_P2x_frs.dta")
@@ -337,7 +339,7 @@ lapply(temp, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(t
 
 ############################################################
 #FOR NHANES III
-temp = nhanesIIIP1
+temp = nhanesIIIP2
 temp = mutate(temp, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))
 temp = mutate(temp, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))
 temp = mutate(temp, M2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 1, 1, 0))
@@ -348,25 +350,25 @@ temp = mutate(temp, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))
 temp = mutate(temp, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))
 
 
-w_M1_nhanesIIIP1 = temp %>% filter(M1 == 1) %>% select(WTPFHX1) %>% sum
-w_F1_nhanesIIIP1= temp %>% filter(F1 == 1) %>% select(WTPFHX1) %>% sum
-w_M2_nhanesIIIP1= temp %>% filter(M2 == 1) %>% select(WTPFHX1) %>% sum
-w_F2_nhanesIIIP1= temp %>% filter(F2 == 1) %>% select(WTPFHX1) %>% sum
-w_M3_nhanesIIIP1= temp %>% filter(M3 == 1) %>% select(WTPFHX1) %>% sum
-w_F3_nhanesIIIP1= temp %>% filter(F3 == 1) %>% select(WTPFHX1) %>% sum
-w_M4_nhanesIIIP1= temp %>% filter(M4 == 1) %>% select(WTPFHX1) %>% sum
-w_F4_nhanesIIIP1= temp %>% filter(F4 == 1) %>% select(WTPFHX1) %>% sum
+w_M1_nhanesIIIP2 = temp %>% filter(M1 == 1) %>% select(WTPFHX2) %>% sum
+w_F1_nhanesIIIP2= temp %>% filter(F1 == 1) %>% select(WTPFHX2) %>% sum
+w_M2_nhanesIIIP2= temp %>% filter(M2 == 1) %>% select(WTPFHX2) %>% sum
+w_F2_nhanesIIIP2= temp %>% filter(F2 == 1) %>% select(WTPFHX2) %>% sum
+w_M3_nhanesIIIP2= temp %>% filter(M3 == 1) %>% select(WTPFHX2) %>% sum
+w_F3_nhanesIIIP2= temp %>% filter(F3 == 1) %>% select(WTPFHX2) %>% sum
+w_M4_nhanesIIIP2= temp %>% filter(M4 == 1) %>% select(WTPFHX2) %>% sum
+w_F4_nhanesIIIP2= temp %>% filter(F4 == 1) %>% select(WTPFHX2) %>% sum
 
 
 
-temp = mutate(temp,wt = case_when(M1 == 1 ~ eval(WTPFHX1)*(eval(w_M1_1999_2000)/(eval(w_M1_nhanesIIIP1))),
-                                            F1 == 1 ~ eval(WTPFHX1)*(eval(w_F1_1999_2000)/(eval(w_F1_nhanesIIIP1))),
-                                            M2 == 1 ~ eval(WTPFHX1)*(eval(w_M2_1999_2000)/(eval(w_M2_nhanesIIIP1))),
-                                            F2 == 1 ~ eval(WTPFHX1)*(eval(w_F2_1999_2000)/(eval(w_F2_nhanesIIIP1))),
-                                            M3 == 1 ~ eval(WTPFHX1)*(eval(w_M3_1999_2000)/(eval(w_M3_nhanesIIIP1))),
-                                            F3 == 1 ~ eval(WTPFHX1)*(eval(w_F3_1999_2000)/(eval(w_F3_nhanesIIIP1))),
-                                            M4 == 1 ~ eval(WTPFHX1)*(eval(w_M4_1999_2000)/(eval(w_M4_nhanesIIIP1))),
-                                            F4 == 1 ~ eval(WTPFHX1)*(eval(w_F4_1999_2000)/(eval(w_F4_nhanesIIIP1))),
+temp = mutate(temp,wt = case_when(M1 == 1 ~ eval(WTPFHX2)*(eval(w_M1_1999_2000)/(eval(w_M1_nhanesIIIP2))),
+                                            F1 == 1 ~ eval(WTPFHX2)*(eval(w_F1_1999_2000)/(eval(w_F1_nhanesIIIP2))),
+                                            M2 == 1 ~ eval(WTPFHX2)*(eval(w_M2_1999_2000)/(eval(w_M2_nhanesIIIP2))),
+                                            F2 == 1 ~ eval(WTPFHX2)*(eval(w_F2_1999_2000)/(eval(w_F2_nhanesIIIP2))),
+                                            M3 == 1 ~ eval(WTPFHX2)*(eval(w_M3_1999_2000)/(eval(w_M3_nhanesIIIP2))),
+                                            F3 == 1 ~ eval(WTPFHX2)*(eval(w_F3_1999_2000)/(eval(w_F3_nhanesIIIP2))),
+                                            M4 == 1 ~ eval(WTPFHX2)*(eval(w_M4_1999_2000)/(eval(w_M4_nhanesIIIP2))),
+                                            F4 == 1 ~ eval(WTPFHX2)*(eval(w_F4_1999_2000)/(eval(w_F4_nhanesIIIP2))),
                                             TRUE ~ NA_real_))
 
 # "ALL" AGE-SEX ADJUSTED
@@ -483,6 +485,41 @@ lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.
 ```
 
 ```{r}
+
+# c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+# c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","GHP")
+######################
+## RISK FACTOR TABS ##
+######################
+# 1988-1991
+nhanesIIIP1 = filter(nhanesIIIP1,GHP != 8888)
+weighted.mean(nhanesIIIP1$HSAGEIR,nhanesIIIP1$wt)
+weighted.mean(nhanesIIIP1$HSSEX,nhanesIIIP1$WTPFHX1)
+weighted.mean(nhanesIIIP1$HDP,nhanesIIIP1$WTPFHX1)
+weighted.mean(nhanesIIIP1$TCP,nhanesIIIP1$WTPFHX1)
+weighted.mean(nhanesIIIP1$PEPMNK1R,nhanesIIIP1$WTPFHX1)
+weighted.mean(nhanesIIIP1$smoke_sts,nhanesIIIP1$WTPFHX1)
+nhanesIIIP1$isDiabetic = ifelse()
+weighted.mean(nhanesIIIP1$GHP,nhanesIIIP1$WTPFHX1)
+
+# 2009-2010
+weighted.mean(nhanes2009_2010$HSAGEIR,nhanes2009_2010$WTPFHX1)
+
+
+# 2017-2018
+weighted.mean(nhanesIIIP1$HSAGEIR,nhanesIIIP1$WTPFHX1)
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```
 
