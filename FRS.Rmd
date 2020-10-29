@@ -15,11 +15,11 @@ output: pdf_document
 ### Required packages ###
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign)
 ### Parameters ###
-f_base10_survival = 0.95012 # baseline 10-year survival for females
-m_base10_survival = 0.88936 # baseline 10-year survival for males
+f_base10 = 0.95012 # baseline 10-year survival for females
+m_base10 = 0.88936 # baseline 10-year survival for males
 
-f_rf <- list(log_age = 2.32888, log_totchol = 1.20904,log_hdl = -0.70833,log_SBP = 2.82263,Smoking = 0.52873,Diabetes = 0.69154) #  log of hazard ratio for each risk factor for females
-m_rf <- list(log_age = 3.06117, log_totchol = 1.12370,log_hdl = -0.93263,log_SBP = 1.99881,Smoking = 0.65451,Diabetes = 0.57367) #  log of hazard ratio for each risk factor for males 
+f_rf <- list(log_age = 2.32888, log_hdl = -0.70833,log_totchol = 1.20904,log_SBP = 2.82263,Smoking = 0.52873,Diabetes = 0.69154) #  log of hazard ratio for each risk factor for females
+m_rf <- list(log_age = 3.06117, log_hdl = -0.93263,log_totchol = 1.12370,log_SBP = 1.99881,Smoking = 0.65451,Diabetes = 0.57367) #  log of hazard ratio for each risk factor for males 
 betas <- list(f=f_rf,m=m_rf) # nested list of f_rf and m_rf
 
 f_points=data.frame("points"=seq(-3,12),"age_low"=c(NA,NA,NA,30,NA,35,NA,40,45,NA,50,55,60,65,70,75),"age_high"=c(NA,NA,NA,34,NA,39,NA,44,49,NA,54,59,64,69,74,120),"HDL_low"=c(NA,60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(NA,1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,NA,0,160,NA,200,240,280,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,NA,160,199,NA,239,279,1000,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,NA,NA,120,130,NA,140,150,160,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,NA,NA,129,139,NA,149,159,1000,NA,NA,NA,NA), "Smoker"=c(NA,NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA))
@@ -32,14 +32,6 @@ i=sapply(30, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)
 # Delete all rows except row "i"
 keep_df=f_points[-(setdiff(1:16,i)),]
 ################################################################################################################################################################
-
-test_func = function(age) {
-  list_pts=c() # Initiate list of points
-  i=sapply(age, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)})
-  return(i)
-}
-test_func=Vectorize(test_func)
-test$test <- test_func(test$riagendr)
 
 get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
   list_pts=c() # Initiate list of points
@@ -87,6 +79,28 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
   }
   return(sum(list_pts))
 }
+
+########################################################################################################
+
+get_cox_frs = function(dta,riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic,wt) {
+  #### MALES ####
+  if (riagendr == 1) {
+   arg1 = sum((m_rf[[1]]*log(ridageyr)),(m_rf[[2]]*log(HDL)),(m_rf[[3]]*log(TotChol)),(m_rf[[4]]*log(sbp)),(m_rf[[5]]*smoker),(m_rf[[6]]*diabetic))
+   m_age=weighted.mean(dta$ridageyr,dta$wt);m_HDL=weighted.mean(dta$HDL,dta$wt);m_TotChol=weighted.mean(dta$TotChol,dta$wt);m_sbp=weighted.mean(dta$sbp,dta$wt);m_smoke=weighted.mean(dta$smoker,dta$wt);m_diabetic=weighted.mean(dta$diabetic,dta$wt)
+    arg2 = sum((m_rf[[1]]*log(m_age)),(m_rf[[2]]*log(m_HDL)),(m_rf[[3]]*log(m_TotChol)),(m_rf[[4]]*log(m_sbp)),(m_rf[[5]]*m_smoke),(m_rf[[6]]*m_diabetic))
+    rho = 1 - (m_base10^(exp(arg1-arg2)))
+  }
+  #### FEMALES ####
+ else {
+     arg1 = sum((f_rf[[1]]*log(ridageyr)),(f_rf[[2]]*log(HDL)),(f_rf[[3]]*log(TotChol)),(f_rf[[4]]*log(sbp)),(f_rf[[5]]*smoker),(f_rf[[6]]*diabetic))
+   m_age=weighted.mean(dta$ridageyr,dta$wt);m_HDL=weighted.mean(dta$HDL,dta$wt);m_TotChol=weighted.mean(dta$TotChol,dta$wt);m_sbp=weighted.mean(dta$sbp,dta$wt);m_smoke=weighted.mean(dta$smoker,dta$wt);m_diabetic=weighted.mean(dta$diabetic,dta$wt)
+    arg2 = sum((f_rf[[1]]*log(m_age)),(f_rf[[2]]*log(m_HDL)),(f_rf[[3]]*log(m_TotChol)),(f_rf[[4]]*log(m_sbp)),(f_rf[[5]]*m_smoke),(f_rf[[6]]*m_diabetic))
+    rho = 1 - (f_base10^(exp(arg1-arg2)))
+  }
+  return(rho)
+}
+
+########################################################################################################
 
 ################################################################################################################################################################
 # THE AVERAGES IN THE COX MODEL DEPEND ON OUR PARTICULAR SAMPLE AND THE CHARACTERISTICS OF THAT SAMPLE.
@@ -361,25 +375,24 @@ w_F4_nhanesIIIP2= temp %>% filter(F4 == 1) %>% select(WTPFHX2) %>% sum
 
 
 
-temp = mutate(temp,wt = case_when(M1 == 1 ~ eval(WTPFHX2)*(eval(w_M1_1999_2000)/(eval(w_M1_nhanesIIIP2))),
-                                            F1 == 1 ~ eval(WTPFHX2)*(eval(w_F1_1999_2000)/(eval(w_F1_nhanesIIIP2))),
-                                            M2 == 1 ~ eval(WTPFHX2)*(eval(w_M2_1999_2000)/(eval(w_M2_nhanesIIIP2))),
-                                            F2 == 1 ~ eval(WTPFHX2)*(eval(w_F2_1999_2000)/(eval(w_F2_nhanesIIIP2))),
-                                            M3 == 1 ~ eval(WTPFHX2)*(eval(w_M3_1999_2000)/(eval(w_M3_nhanesIIIP2))),
-                                            F3 == 1 ~ eval(WTPFHX2)*(eval(w_F3_1999_2000)/(eval(w_F3_nhanesIIIP2))),
-                                            M4 == 1 ~ eval(WTPFHX2)*(eval(w_M4_1999_2000)/(eval(w_M4_nhanesIIIP2))),
-                                            F4 == 1 ~ eval(WTPFHX2)*(eval(w_F4_1999_2000)/(eval(w_F4_nhanesIIIP2))),
+temp = mutate(temp,wt = case_when(M1 == 1 ~ eval(WTPFHX2)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesIIIP2))),
+                                            F1 == 1 ~ eval(WTPFHX2)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesIIIP2))),
+                                            M2 == 1 ~ eval(WTPFHX2)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesIIIP2))),
+                                            F2 == 1 ~ eval(WTPFHX2)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesIIIP2))),
+                                            M3 == 1 ~ eval(WTPFHX2)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesIIIP2))),
+                                            F3 == 1 ~ eval(WTPFHX2)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesIIIP2))),
+                                            M4 == 1 ~ eval(WTPFHX2)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP2))),
+                                            F4 == 1 ~ eval(WTPFHX2)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP2))),
                                             TRUE ~ NA_real_))
 
 # "ALL" AGE-SEX ADJUSTED
 weighted.mean(temp$frs,temp$wt)
-temp1=temp
 #<HS
 temp1 = filter(temp,HFA8R <= 11);print(weighted.mean(temp1$frs,temp1$wt))
 # HS
 temp1 = filter(temp,HFA8R == 12);print(weighted.mean(temp1$frs,temp1$wt))
 # Some College
-temp1 = filter(temp,HFA8R > 12 & HFA8R < 16);print(weighted.mean(temp1$frs,temp1$wt))
+temp1 = filter(temp,HFA8R == 12);print(weighted.mean(temp1$frs,temp1$wt))
 # College Grad
 temp1 = filter(temp,HFA8R >= 16);print(weighted.mean(temp1$frs,temp1$wt))
 ##### BY AGE #####
@@ -492,22 +505,103 @@ lapply(df_listIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.
 ## RISK FACTOR TABS ##
 ######################
 # 1988-1991
+#ALL
+#PHASE 1
+
 nhanesIIIP1 = filter(nhanesIIIP1,GHP != 8888)
+nhanesIIIP1$wt = temp$wt
 weighted.mean(nhanesIIIP1$HSAGEIR,nhanesIIIP1$wt)
-weighted.mean(nhanesIIIP1$HSSEX,nhanesIIIP1$WTPFHX1)
-weighted.mean(nhanesIIIP1$HDP,nhanesIIIP1$WTPFHX1)
-weighted.mean(nhanesIIIP1$TCP,nhanesIIIP1$WTPFHX1)
-weighted.mean(nhanesIIIP1$PEPMNK1R,nhanesIIIP1$WTPFHX1)
-weighted.mean(nhanesIIIP1$smoke_sts,nhanesIIIP1$WTPFHX1)
-nhanesIIIP1$isDiabetic = ifelse()
+weighted.mean(nhanesIIIP1$HSSEX,nhanesIIIP1$wt)
+weighted.mean(nhanesIIIP1$HDP,nhanesIIIP1$wt)
+weighted.mean(nhanesIIIP1$TCP,nhanesIIIP1$wt)
+weighted.mean(nhanesIIIP1$PEPMNK1R,nhanesIIIP1$wt)
+nhanesIIIP1$isSmoker = ifelse(nhanesIIIP1$smoke_sts == 1, 1, 0)
+weighted.mean(nhanesIIIP1$isSmoker,nhanesIIIP1$wt)
+nhanesIIIP1$isDiabetic = ifelse(nhanesIIIP1$GHP < 6.5, 1, 0)
+weighted.mean(nhanesIIIP1$isDiabetic,nhanesIIIP1$wt)
+
 weighted.mean(nhanesIIIP1$GHP,nhanesIIIP1$WTPFHX1)
 
-# 2009-2010
-weighted.mean(nhanes2009_2010$HSAGEIR,nhanes2009_2010$WTPFHX1)
+#PHASE 2
+#ALL
+weighted.mean(nhanesIIIP2$HSAGEIR,nhanesIIIP2$wt)
+weighted.mean(nhanesIIIP2$HSSEX,nhanesIIIP2$wt)
+weighted.mean(nhanesIIIP2$HDP,nhanesIIIP2$wt)
+weighted.mean(nhanesIIIP2$TCP,nhanesIIIP2$wt)
+weighted.mean(nhanesIIIP2$PEPMNK1R,nhanesIIIP2$wt)
+nhanesIIIP2$isSmoker = ifelse(nhanesIIIP2$smoke_sts == 1, 1, 0)
+weighted.mean(nhanesIIIP2$isSmoker,nhanesIIIP2$wt)
+nhanesIIIP2$isDiabetic = ifelse(nhanesIIIP2$GHP < 6.5, 1, 0)
+weighted.mean(nhanesIIIP2$isDiabetic,nhanesIIIP2$wt)
+
+weighted.mean(nhanesIIIP2$GHP,nhanesIIIP2$WTPFHX1)
+# BY GRADE, AGE
+nhanesIIIP1=temp
+temp=filter(nhanesIIIP1,HFA8R >= 16);print(weighted.mean(temp$HSSEX,temp$wt))
+temp=filter(nhanesIIIP1,HFA8R >= 16);print(weighted.mean(temp$HSAGEIR,temp$wt))
+temp=filter(nhanesIIIP1,HFA8R >= 16);print(weighted.mean(temp$TCP,temp$wt))
+temp=filter(nhanesIIIP1,HFA8R >= 16);print(weighted.mean(temp$HDP,temp$wt))
+temp=filter(nhanesIIIP1,HFA8R >= 16);print(weighted.mean(temp$PEPMNK1R,temp$wt))
+temp=filter(nhanesIIIP1,HFA8R >= 16);temp$isSmoker= ifelse(temp$smoke_sts == 1, 1, 0);print(weighted.mean(temp$isSmoker,temp$wt))
+temp=filter(nhanesIIIP1,HFA8R >= 16);temp$isDiabetic= ifelse(temp$GHP < 6.5, 0, 1);print(weighted.mean(temp$isDiabetic,temp$wt))
+
+temp=filter(nhanesIIIP2,HFA8R < 12);print(weighted.mean(temp$HSSEX,temp$wt))
+temp=filter(nhanesIIIP2,HFA8R < 12);print(weighted.mean(temp$HSAGEIR,temp$wt))
+temp=filter(nhanesIIIP2,HFA8R < 12);print(weighted.mean(temp$TCP,temp$wt))
+temp=filter(nhanesIIIP2,HFA8R < 12);print(weighted.mean(temp$HDP,temp$wt))
+temp=filter(nhanesIIIP2,HFA8R < 12);print(weighted.mean(temp$PEPMNK1R,temp$wt))
+temp=filter(nhanesIIIP2,HFA8R < 12);temp$isSmoker= ifelse(temp$smoke_sts == 1, 1, 0);print(weighted.mean(temp$isSmoker,temp$wt))
+temp=filter(nhanesIIIP2,HFA8R < 12);temp$isDiabetic= ifelse(temp$GHP < 6.5, 0, 1);print(weighted.mean(temp$isDiabetic,temp$wt))
 
 
-# 2017-2018
-weighted.mean(nhanesIIIP1$HSAGEIR,nhanesIIIP1$WTPFHX1)
+############################################################
+ # CONTINUOUS
+############################################################
+filenames = list.files("/homes/nber/kimcwa/Documents/casedeaton/",pattern = "_frs.dta",full.names = TRUE)
+df_list = lapply(filenames,read_dta)
+## FORMING AGE-SEX GROUPS FOR EACH PERSON
+# 45-54, MALES & FEMALES
+#lapply(df_list, function(x) {mutate(temp, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
+temp = df_list %>% lapply(function(x) {mutate(x, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 2, 1, 0))})
+# 55-64, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M2 = ifelse(ridageyr >= 55 & ridageyr <= 64 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(ridageyr >= 55 & ridageyr <= 64 & riagendr == 2, 1, 0))})
+# 65-74, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(ridageyr >= 65 & ridageyr <= 74 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(ridageyr >= 65 & ridageyr <= 74 & riagendr == 2, 1, 0))})
+# 75+, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(ridageyr >= 75 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(ridageyr >= 75 & riagendr == 2, 1, 0))})
+## FORM SUM OF WEIGHT FOR EACH AGE-SEX GROUP IN EACH OTHER YEAR 
+index = 1
+for (year in c("2009_2010","2017_2018"))
+  {
+  for (sex in c("M","F")) {
+    for (cat in c(1,2,3,4)) {
+      assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[index]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(wtint2yr) %>% sum)
+  }  }   
+}
+temp[[2]] = mutate(temp[[2]],wt = case_when(M1 == 1 ~ eval(wtint2yr)*(eval(w_M1_2009_2010)/(eval(w_M1_2017_2018))),
+                                            F1 == 1 ~ eval(wtint2yr)*(eval(w_F1_2009_2010)/(eval(w_F1_2017_2018))),
+                                            M2 == 1 ~ eval(wtint2yr)*(eval(w_M2_2009_2010)/(eval(w_M2_2017_2018))),
+                                            F2 == 1 ~ eval(wtint2yr)*(eval(w_F2_2009_2010)/(eval(w_F2_2017_2018))),
+                                            M3 == 1 ~ eval(wtint2yr)*(eval(w_M3_2009_2010)/(eval(w_M3_2017_2018))),
+                                            F3 == 1 ~ eval(wtint2yr)*(eval(w_F3_2009_2010)/(eval(w_F3_2017_2018))),
+                                            M4 == 1 ~ eval(wtint2yr)*(eval(w_M4_2009_2010)/(eval(w_M4_2017_2018))),
+                                            F4 == 1 ~ eval(wtint2yr)*(eval(w_F4_2009_2010)/(eval(w_F4_2017_2018))),
+                                            TRUE ~ NA_real_))
+
+# 2009-2010 AND 2017-2018
+#"riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh"
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$riagendr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$ridageyr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$lbdhdd,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);x$isDiabetic = ifelse(x$lbxgh < 6.5,1,0);print(weighted.mean(x$isDiabetic,x$wt))})
+
 
 
 
