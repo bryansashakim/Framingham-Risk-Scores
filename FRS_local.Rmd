@@ -506,3 +506,15 @@ lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mea
 ############################################################
 ```
 
+
+```{r}
+## PLOTS
+
+df_plot = data.frame("survey"=c("nhanesIIIP1","nhanesIIIP2", "nhanes1999_2000", "nhanes2001_2002","nhanes2003_2004","nhanes2005_2006","nhanes2007_2008","nhanes2009_2010" ,"nhanes2011_2012","nhanes2013_2014", "nhanes2015_2016", "nhanes2017_2018"),"mean_frs"=c(16.38,16.62, 15,	14.52	,14.42,	13.92	,13.88,	13.56	,13.79,	13.51	,13.81,	13.87))
+
+df_plot %>% ggplot(aes(x = survey, y = mean_frs)) +
+              geom_point() + 
+              geom_smooth(method = "lm")
+
+```
+
