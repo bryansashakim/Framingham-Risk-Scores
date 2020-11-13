@@ -1,0 +1,279 @@
+---
+title: "FRS"
+author: "Bryan Kim"
+date: "9/15/2020"
+output: pdf_document
+---
+
+```{r}
+######################################################################
+#### ESTIMATING THE 10 YEAR CARDIOVASCULAR DISEASE RISK IN ADULTS ####
+######################################################################
+
+# Originating from the Framingham Risk Study, the model is based on a Cox Proportional Hazard Model
+
+### Required packages ###
+library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign)
+### Parameters ###
+f_base10 = 0.95012 # baseline 10-year survival for females
+m_base10 = 0.88936 # baseline 10-year survival for males
+
+f_rf <- list(log_age = 2.32888, log_hdl = -0.70833,log_totchol = 1.20904,log_SBP = 2.82263,Smoking = 0.52873,Diabetes = 0.69154) #  log of hazard ratio for each risk factor for females
+m_rf <- list(log_age = 3.06117, log_hdl = -0.93263,log_totchol = 1.12370,log_SBP = 1.99881,Smoking = 0.65451,Diabetes = 0.57367) #  log of hazard ratio for each risk factor for males 
+betas <- list(f=f_rf,m=m_rf) # nested list of f_rf and m_rf
+
+f_points=data.frame("points"=seq(-3,12),"age_low"=c(NA,NA,NA,30,NA,35,NA,40,45,NA,50,55,60,65,70,75),"age_high"=c(NA,NA,NA,34,NA,39,NA,44,49,NA,54,59,64,69,74,120),"HDL_low"=c(NA,60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(NA,1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,NA,0,160,NA,200,240,280,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,NA,160,199,NA,239,279,1000,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,NA,NA,120,130,NA,140,150,160,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,NA,NA,129,139,NA,149,159,1000,NA,NA,NA,NA), "Smoker"=c(NA,NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA))
+m_points=data.frame("points"=seq(-2,15),"age_low"=c(NA,NA,30,NA,35,NA,NA,40,45,NA,50,NA,55,60,65,NA,70,75),"age_high"=c(NA,NA,34,NA,39,NA,NA,44,49,NA,54,NA,59,64,69,NA,74,120),"HDL_low"=c(60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,0,160,200,240,280,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,160,199,239,279,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,120,130,140,160,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,129,139,149,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "Smoker"=c(NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA))
+
+f_risk=data.frame("points"=seq(-2,21),"risk_%"=c(NA,1.0,1.2,1.5,1.7,2.0,2.4,2.8,3.3,3.9,4.5,5.3,6.3,7.3,8.6,10.0,11.7,13.7,15.9,18.5,21.5,24.8,28.5,30),"age_high"=c(NA,NA,NA,34,NA,39,NA,44,49,NA,54,59,64,69,74,120),"HDL_low"=c(NA,60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(NA,1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,NA,0,160,NA,200,240,280,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,NA,160,199,NA,239,279,1000,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,NA,NA,120,130,NA,140,150,160,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,NA,NA,129,139,NA,149,159,1000,NA,NA,NA,NA), "Smoker"=c(NA,NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA))
+m_points=data.frame("points"=seq(-3,18),"age_low"=c(NA,NA,30,NA,35,NA,NA,40,45,NA,50,NA,55,60,65,NA,70,75),"age_high"=c(NA,NA,34,NA,39,NA,NA,44,49,NA,54,NA,59,64,69,NA,74,120),"HDL_low"=c(60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"HDL_high"=c(1000,59,49,44,35,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_low"=c(NA,NA,0,160,200,240,280,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"TotChol_high"=c(NA,NA,160,199,239,279,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "SBP_low"=c(NA,NA,0,NA,120,130,140,160,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),"SBP_high"=c(NA,NA,120,NA,129,139,149,1000,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "Smoker"=c(NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA), "Diabetic"=c(NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA))
+
+################################################################################################################################################################
+# This gets the row where the input (30 in this example) satisfies the condition that it is between the age_low and age_high columns of the data frame f_points
+i=sapply(30, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)})
+# Delete all rows except row "i"
+keep_df=f_points[-(setdiff(1:16,i)),]
+################################################################################################################################################################
+
+get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
+  list_pts=c() # Initiate list of points
+  #### MALES ####
+  if (riagendr == 1) {
+   ## GET POINTS FROM AGE ##
+  i=sapply(ridageyr, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_age <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]]) 
+  ## GET POINTS FROM HDL ##
+  i=sapply(HDL, function(p) { which(m_points$HDL_low <= p & m_points$HDL_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_HDL <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM TOTAL CHOLESTEROL ##
+  i=sapply(TotChol, function(p) { which(m_points$TotChol_low <= p & m_points$TotChol_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_TotChol <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SBP ##
+  i=sapply(sbp, function(p) { which(m_points$SBP_low <= p & m_points$SBP_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_SBP <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SMOKER ##
+  if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+  # m_smoke <<- 4
+  ## GET POINTS FROM DIABETIC ##
+  # if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,3)} else {list_pts=append(list_pts,0)}
+  # m_diabetic <<- 3
+  }
+  #### FEMALES ####
+ else {
+     ## GET POINTS FROM AGE ##
+  i=sapply(ridageyr, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_age <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]]) 
+  ## GET POINTS FROM HDL ##
+  i=sapply(HDL, function(p) { which(f_points$HDL_low <= p & f_points$HDL_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_HDL <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM TOTAL CHOLESTEROL ##
+  i=sapply(TotChol, function(p) { which(f_points$TotChol_low <= p & f_points$TotChol_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_TotChol <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SBP ##
+  i=sapply(sbp, function(p) { which(f_points$SBP_low <= p & f_points$SBP_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_SBP <<- keep_df[[1]]
+  list_pts=append(list_pts,keep_df[[1]])
+  ## GET POINTS FROM SMOKER ##
+  if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+  # f_smoke <<- 3
+  ## GET POINTS FROM DIABETIC ##
+  # if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+    if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,4)} else {list_pts=append(list_pts,0)}
+  # f_diabetic <<- 4
+  }
+  return(sum(list_pts))
+}
+
+########################################################################################################
+
+get_cox_frs = function(dta,riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic,wt) {
+  #### MALES ####
+  if (riagendr == 1) {
+   arg1 = sum((m_rf[[1]]*log(ridageyr)),(m_rf[[2]]*log(HDL)),(m_rf[[3]]*log(TotChol)),(m_rf[[4]]*log(sbp)),(m_rf[[5]]*smoker),(m_rf[[6]]*diabetic))
+   m_age=weighted.mean(dta$ridageyr,dta$wt);m_HDL=weighted.mean(dta$HDL,dta$wt);m_TotChol=weighted.mean(dta$TotChol,dta$wt);m_sbp=weighted.mean(dta$sbp,dta$wt);m_smoke=weighted.mean(dta$smoker,dta$wt);m_diabetic=weighted.mean(dta$diabetic,dta$wt)
+    arg2 = sum((m_rf[[1]]*log(m_age)),(m_rf[[2]]*log(m_HDL)),(m_rf[[3]]*log(m_TotChol)),(m_rf[[4]]*log(m_sbp)),(m_rf[[5]]*m_smoke),(m_rf[[6]]*m_diabetic))
+    rho = 1 - (m_base10^(exp(arg1-arg2)))
+  }
+  #### FEMALES ####
+ else {
+     arg1 = sum((f_rf[[1]]*log(ridageyr)),(f_rf[[2]]*log(HDL)),(f_rf[[3]]*log(TotChol)),(f_rf[[4]]*log(sbp)),(f_rf[[5]]*smoker),(f_rf[[6]]*diabetic))
+   m_age=weighted.mean(dta$ridageyr,dta$wt);m_HDL=weighted.mean(dta$HDL,dta$wt);m_TotChol=weighted.mean(dta$TotChol,dta$wt);m_sbp=weighted.mean(dta$sbp,dta$wt);m_smoke=weighted.mean(dta$smoker,dta$wt);m_diabetic=weighted.mean(dta$diabetic,dta$wt)
+    arg2 = sum((f_rf[[1]]*log(m_age)),(f_rf[[2]]*log(m_HDL)),(f_rf[[3]]*log(m_TotChol)),(f_rf[[4]]*log(m_sbp)),(f_rf[[5]]*m_smoke),(f_rf[[6]]*m_diabetic))
+    rho = 1 - (f_base10^(exp(arg1-arg2)))
+  }
+  return(rho)
+}
+
+########################################################################################################
+
+################################################################################################################################################################
+# THE AVERAGES IN THE COX MODEL DEPEND ON OUR PARTICULAR SAMPLE AND THE CHARACTERISTICS OF THAT SAMPLE.
+
+### COX MODEL ESTIMATE ###
+# FEMALES
+# arg1_f = betas$f$log_age*log(age)+betas$f$log_totchol*log(TotChol)+betas$f$log_hdl*log(HDL)+betas$f$log_SBP*log(sbp)+betas$f$Smoking*smoker+betas$f$Diabetes*diabetic
+# arg2_f = 0 # THE MEAN VALUES HERE #
+# 
+# rho_f = 1-(f_base10_survival^exp(arg1_f - arg2_f))
+# # MALES
+# arg1_m = betas$m$log_age*log(age)+betas$m$log_totchol*log(TotChol)+betas$m$log_hdl*log(HDL)+betas$m$log_SBP*log(sbp)+betas$m$Smoking*smoker+betas$m$Diabetes*diabetic
+# arg2_m= 0  # THE MEAN VALUES HERE #
+# 
+# rho_m = 1-(m_base10_survival^exp(arg1_m - arg2_m))
+```
+
+```{r}
+# order: riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic
+##########################################
+##               1999-2000              ##
+##########################################
+nhanes1999_2000=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_1999_2000_full.dta")
+nhanes1999_2000=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_1999_2000_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes1999_2000= nhanes1999_2000[complete.cases(nhanes1999_2000[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$smoke_sts,nhanes1999_2000$lbxgh)
+
+write_dta(nhanes1999_2000, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_1999_2000_frs.dta")
+
+##########################################
+##               2001-20012             ##
+##########################################
+nhanes2001_2002=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2001_2002_full.dta")
+nhanes2001_2002=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2001_2002_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2001_2002= nhanes2001_2002[complete.cases(nhanes2001_2002[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes2001_2002$frs = mapply(get_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$lbdhdl,nhanes2001_2002$lbxtc,nhanes2001_2002$bpxsar,nhanes2001_2002$smoke_sts,nhanes2001_2002$lbxgh)
+
+write_dta(nhanes2001_2002, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2001_2002_frs.dta")
+
+##########################################
+##               2003_20034             ##
+##########################################
+nhanes2003_2004=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2003_2004_full.dta")
+nhanes2003_2004=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2003_2004_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2003_2004= nhanes2003_2004[complete.cases(nhanes2003_2004[ , c("riagendr","ridageyr","lbxhdd","lbxtc","bpxsar","smoke_sts","lbxgh")]),]
+nhanes2003_2004$frs = mapply(get_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$lbxhdd,nhanes2003_2004$lbxtc,nhanes2003_2004$bpxsar,nhanes2003_2004$smoke_sts,nhanes2003_2004$lbxgh)
+
+write_dta(nhanes2003_2004, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2003_2004_frs.dta")
+
+##########################################
+##               2005_2006            ##
+##########################################
+nhanes2005_2006=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2005_2006_full.dta")
+nhanes2005_2006=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2005_2006_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2005_2006= nhanes2005_2006[complete.cases(nhanes2005_2006[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2005_2006$frs = mapply(get_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$lbdhdd,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$smoke_sts,nhanes2005_2006$lbxgh)
+
+write_dta(nhanes2005_2006, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2005_2006_frs.dta")
+
+##########################################
+##               2007_2008          ##
+##########################################
+nhanes2007_2008=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2007_2008_full.dta")
+nhanes2007_2008=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2007_2008_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2007_2008= nhanes2007_2008[complete.cases(nhanes2007_2008[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2007_2008$frs = mapply(get_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$lbdhdd,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$smoke_sts,nhanes2007_2008$lbxgh)
+
+write_dta(nhanes2007_2008, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2007_2008_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2009_2010=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2000_2010_full.dta")
+nhanes2009_2010=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2009_2010_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2009_2010= nhanes2009_2010[complete.cases(nhanes2009_2010[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2009_2010$frs = mapply(get_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$lbdhdd,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$smoke_sts,nhanes2009_2010$lbxgh)
+
+write_dta(nhanes2009_2010, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2009_2010_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2011_2012=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2011_2012_full.dta")
+nhanes2011_2012=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2011_2012_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2011_2012= nhanes2011_2012[complete.cases(nhanes2011_2012[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2011_2012$frs = mapply(get_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$lbdhdd,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$smoke_sts,nhanes2011_2012$lbxgh)
+
+write_dta(nhanes2011_2012, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2011_2012_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2013_2014=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2013_2014_full.dta")
+nhanes2013_2014=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2013_2014_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2013_2014= nhanes2013_2014[complete.cases(nhanes2013_2014[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$lbdhdd,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$smoke_sts,nhanes2013_2014$lbxgh)
+
+write_dta(nhanes2013_2014, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2013_2014_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2015_2016=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2015_2016_full.dta")
+nhanes2015_2016=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2015_2016_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2015_2016= nhanes2015_2016[complete.cases(nhanes2015_2016[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2015_2016$frs = mapply(get_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$lbdhdd,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$smoke_sts,nhanes2015_2016$lbxgh)
+
+write_dta(nhanes2015_2016, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2015_2016_frs.dta")
+
+##########################################
+##               2009_2010          ##
+##########################################
+nhanes2017_2018=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanes_2017_2018_full.dta")
+nhanes2017_2018=read_dta("/homes/nber/kimcwa/Documents/casedeaton/NHANES/LMF Data/NHANES continuous/nhanes_2017_2018_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","smoke_sts","lbxgh")]),]
+nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$lbdhdd,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$smoke_sts,nhanes2017_2018$lbxgh)
+
+write_dta(nhanes2017_2018, "/homes/nber/kimcwa/Documents/casedeaton/nhanes_2017_2018_frs.dta")
+
+
+##########################################
+##               NHANES II              ##
+##########################################
+nhanesII=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesII_full.dta")
+## Dropping rows where FPG values are null or inapplicable
+nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
+nhanesII = nhanesII %>% filter(GRADE != 0)
+## Dropping rows where values of our risk factor variables are NA
+nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","smoke_sts","fpg")]),]
+nhanesII$frs_fpg = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$smoke_sts,nhanesII$fpg)
+write_dta(nhanesII, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesII_frs")
+
+
+
+##########################################
+##               NHANES III          ##
+##########################################
+nhanesIII=read_dta("/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanesIII= nhanesIII[complete.cases(nhanesIII[ , c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","GHP")]),]
+nhanesIII$frs = mapply(get_frs, nhanesIII$HSSEX,nhanesIII$HSAGEIR,nhanesIII$HDP,nhanesIII$TCP,nhanesIII$PEPMNK1R,nhanesIII$smoke_sts,nhanesIII$GHP)
+nhanesIII$frs_fpg = mapply(get_frs, nhanesIII$HSSEX,nhanesIII$HSAGEIR,nhanesIII$HDP,nhanesIII$TCP,nhanesIII$PEPMNK1R,nhanesIII$smoke_sts,nhanesIII$fpg)
+#PHASE 1
+nhanesIIIP1 = filter(nhanesIII,SDPPHASE==1)
+#PHASE 2
+nhanesIIIP2 = filter(nhanesIII,SDPPHASE==2)
+nhanesIIIP1 = filter(nhanesIIIP1,GHP != 8888)
+nhanesIIIP2 = filter(nhanesIIIP2,GHP != 8888)
+write_dta(nhanesIII, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_frs.dta")
+write_dta(nhanesIIIP1, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_P2x_frs.dta")
+
+# With FPG stuff:
+nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P1x_frs.dta")
+nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P2x_frs.dta")
+nhanesIIIP1$frs_fpg = mapply(get_frs, nhanesIIIP1$HSSEX,nhanesIIIP1$HSAGEIR,nhanesIIIP1$HDP,nhanesIIIP1$TCP,nhanesIIIP1$PEPMNK1R,nhanesIIIP1$smoke_sts,nhanesIIIP1$fpg)
+nhanesIIIP2$frs_fpg = mapply(get_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$HDP,nhanesIIIP2$TCP,nhanesIIIP2$PEPMNK1R,nhanesIIIP2$smoke_sts,nhanesIIIP2$fpg)
+write_dta(nhanesIIIP1, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P2x_frs.dta")
+```
+
+
