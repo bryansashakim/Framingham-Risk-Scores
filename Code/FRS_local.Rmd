@@ -14,7 +14,7 @@ output: pdf_document
 # Originating from the Framingham Risk Study, the model is based on a Cox Proportional Hazard Model
 
 ### Required packages ###
-library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign)
+library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage)
 ### Parameters ###
 f_base10 = 0.95012 # baseline 10-year survival for females
 m_base10 = 0.88936 # baseline 10-year survival for males
@@ -537,5 +537,16 @@ nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$r
 
 ```
 
+```{r}
+kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+test$knn=kNN$fpg
+matchit()
+test$score=test$imputed_fpg-test$knn
+test$test=ifelse((test$imputed_fpg>=126 & test$knn<126) | (test$imputed_fpg<126 & test$knn>=126),1,0)
+test$test2=ifelse((test$imputed_fpg>=126 & lbxgh<6.5),1,0)
+test$test3=ifelse((test$imputed_fpg>=126 & lbxgh>6.5) | (test$imputed_fpg<126 & test$knn>=126),1,0)
+
+test %>% select(test) %>% sum
+```
 
 
