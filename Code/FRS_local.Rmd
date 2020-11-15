@@ -537,16 +537,53 @@ nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$r
 
 ```
 
+### IMPUTATION METHODS
 ```{r}
+## This is the data with imputed FPG values using KNN method
 kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
-test$knn=kNN$fpg
-matchit()
-test$score=test$imputed_fpg-test$knn
-test$test=ifelse((test$imputed_fpg>=126 & test$knn<126) | (test$imputed_fpg<126 & test$knn>=126),1,0)
-test$test2=ifelse((test$imputed_fpg>=126 & lbxgh<6.5),1,0)
-test$test3=ifelse((test$imputed_fpg>=126 & lbxgh>6.5) | (test$imputed_fpg<126 & test$knn>=126),1,0)
+## example on nhanes (1999-2000)
+nhanes = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta"); nhanes= nhanes[complete.cases(nhanes[ , c("lbxgh")]),]; fit = lm(nhanes$fpg ~ nhanes$lbxgh);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg = pred)
+fit = lm(nhanes$fpg ~ nhanes$lbxgh + nhanes$M1 + nhanes$M2 + nhanes$M3 + nhanes$M4 + nhanes$F1 + nhanes$F2 + nhanes$F3 + nhanes$F4);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg2 = pred)
+nhanes = nhanes %>% mutate(fpg_final = ifelse(is.na(fpg),imputed_fpg,fpg))
 
-test %>% select(test) %>% sum
+nhanes$fpg_knn=kNN$X1
+
+### Analyzing scores between complete cases of fpg and HbA1c cases. 
+# I am seeing how similar each of the FPG and HbA1c tests for diabetes are. 
+test=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+# Keeping only observations where we have BOTH FPG and HbA1c results in NHANES.
+test= test[complete.cases(test[ , c("lbxgh","fpg")]),] # Gives us 1098 observations
+# Dummy variable positive = 1 if both the FPG test and HbA1c test give us the same result for diabetes (or no diabetes)
+test = test %>% mutate(positive = ifelse((fpg >= 126 & lbxgh > 6.5) | (fpg <= 126 & lbxgh < 6.5),1,0))
+sum_pos = test %>% select(positive) %>% sum
+print(sum_pos)
+# So out of the 1098 observations, both tests give the same result for diabetes for 1031 observations (94% similarity)
+# Merging with nhanes to use imputed values
+test = merge(test,nhanes, all.x=TRUE, on="seqn")
+test$diff_impute_regress = ifelse((test$imputed_fpg >= 126 & test$fpg < 126) | (test$imputed_fpg <= 126 & test$fpg > 126),1,0)
+test %>% select(diff_impute_regress) %>% sum
+# 63 cases where imputed values of fpg using linear regression are incorrect when compared to original fpg values
+test$diff_impute_knn = ifelse((test$fpg_knn >= 126 & test$lbxgh < 6.5) | (test$fpg_knn <= 126 & test$lbxgh > 6.5),1,0)
+test %>% select(diff_impute_knn) %>% sum
+# 59 cases where knn values of FPG are incorrect when compared to HbA1c
+
+### Analyzing the differences between imputation methods (knn and simple linear regression)
+nhanes$diff_score = nhanes$imputed_fpg-nhanes$fpg_knn # "imputed_fpg" is the imputed fpg values using linear regression: (fpg ~ HbA1c)
+# Absolute value of the mean of this "difference score".
+abs(mean(nhanes$diff_score))
+# = 0.055
+
+## CHECKING CASES
+nhanes$cross_val1 = ifelse((nhanes$fpg_final >= 126 & nhanes$lbxgh > 6.5) | (nhanes$fpg_final <= 126 & nhanes$lbxgh < 6.5),1,0)
+nhanes$cross_val2 = ifelse((nhanes$fpg_knn >= 126 & nhanes$lbxgh > 6.5) | (nhanes$fpg_knn <= 126 & nhanes$lbxgh < 6.5),1,0)
+
+nhanes %>% select(cross_val1) %>% sum
+nhanes %>% select(cross_val2) %>% sum
+
+nhanes$nhanes2=ifelse((nhanes$imputed_fpg>=126 & lbxgh<6.5),1,0)
+nhanes$nhanes3=ifelse((nhanes$imputed_fpg>=126 & lbxgh>6.5) | (nhanes$imputed_fpg<126 & nhanes$knn>=126),1,0)
+
+nhanes %>% select(nhanes) %>% sum
 ```
 
 
