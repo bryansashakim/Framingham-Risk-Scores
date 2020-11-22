@@ -8,6 +8,102 @@ output: pdf_document
 ##########################################
 ###          Summary Statistics        ###
 ##########################################
+
+### NHANES II ###
+```{r}
+
+# ALL
+weighted.mean(nhanesII$frs,nhanesII$med_hist_int_wt)
+weighted.mean(nhanesII$frs,nhanesII$wt)
+
+
+#FOR NHANES III
+nhanesII = nhanesII %>% filter(GRADE != 88)
+tempII = list(nhanesII)
+length(tempII) # should be 2
+##### BY EDUCATION #####
+# <HS 
+# <HS 
+lapply(tempII, function(x) {temp = filter(x,x$HFA8R < 34);print(weighted.mean(temp$frs,temp$wt))})
+
+# HS
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 34 & x$GRADE_COMPL == 1);print(weighted.mean(temp$frs,temp$wt))})
+
+# Some College
+lapply(tempII, function(x) {temp = filter(x,x$GRADE > 34 & x$GRADE < 45);print(weighted.mean(temp$frs,temp$wt))})
+
+# College Grad
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 45);print(weighted.mean(temp$frs,temp$wt))})
+
+##### BY AGE #####
+# 45-54
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=45 & x$AGEYR_AT_INT <=54);print(weighted.mean(temp$frs,temp$wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=45 & x$AGEYR_AT_INT <=54);print(weighted.mean(temp$frs,temp$wt))})
+
+# 55-64
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=55 & x$AGEYR_AT_INT <=64);print(weighted.mean(temp$frs,temp$wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=55 & x$AGEYR_AT_INT <=64);print(weighted.mean(temp$frs,temp$wt))})
+
+# 65-74
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=65 & x$AGEYR_AT_INT <=74);print(weighted.mean(temp$frs,temp$wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=65 & x$AGEYR_AT_INT <=74);print(weighted.mean(temp$frs,temp$wt))})
+
+# 75+
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=75);print(weighted.mean(temp$frs,temp$wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=75);print(weighted.mean(temp$frs,temp$wt))})
+
+# 85+
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >= 85);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+############################################################
+
+```
+
+### NHANES III ###
+```{r}
+#FOR NHANES III
+tempIII = list(nhanesIIIP1,nhanesIIIP2)
+length(tempIII) # should be 2
+
+# ALL
+weighted.mean(nhanesIIIP1$frs,nhanesIIIP1$WTPFQX1)
+weighted.mean(nhanesIIIP2$frs,nhanesIIIP2$WTPFQX2)
+
+##### BY EDUCATION #####
+# <HS 
+# <HS 
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$frs,temp$WTPFQX1));print(weighted.mean(temp$frs,temp$WTPFQX2))})
+
+# HS
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$frs,temp$WTPFQX1));print(weighted.mean(temp$frs,temp$WTPFQX2))})
+
+# Some College
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$frs,temp$wt))})
+
+# College Grad
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$frs,temp$wt))})
+
+##### BY AGE #####
+# 45-54
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$frs,temp$wt))})
+
+# 55-64
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$frs,temp$wt))})
+
+# 65-74
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$frs,temp$wt))})
+
+# 75+
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=75);print(weighted.mean(temp$frs,temp$wt))})
+
+# 85+
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+
+############################################################
+
+```
+
+## continuous NHANES
 ```{r}
 
 temp=list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
@@ -17,87 +113,105 @@ lapply(temp, function(x) print(weighted.mean(x$frs,x$wt)))
 
 ##### BY EDUCATION #####
 # <HS 
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(temp$frs,temp$wt))})
 
 # HS
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 3);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 3);print(weighted.mean(temp$frs,temp$wt))})
 
 # Some College
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 4);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 4);print(weighted.mean(temp$frs,temp$wt))})
 
 # College Grad
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 5);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 5);print(weighted.mean(temp$frs,temp$wt))})
 
 ##### BY AGE #####
 # 45-54
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(temp$frs,temp$wt))})
 # 55-64
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(temp$frs,temp$wt))})
 # 65-74
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(temp$frs,temp$wt))})
 # 75+
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(temp$frs,temp$wtint2yr))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(temp$frs,temp$wt))})
 # 85+
 lapply(temp, function(x) {temp = filter(x,x$ridageyr >= 85);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
 
-############################################################
-#FOR NHANES III
-nhanesIII_file = list.files("/homes/nber/kimcwa/Documents/casedeaton/frs",pattern = "x_frs.dta",full.names = TRUE)
-tempIII = lapply(nhanesIII_file,read_dta)
-length(tempIII) # should be 2
-
-# ALL
-weighted.mean(nhanesIIIP1$frs,nhanesIIIP1$wt)
-weighted.mean(nhanesIIIP2$frs,nhanesIIIP2$wt)
-
-tempIII = list(nhanesIIIP1,nhanesIIIP2)
-
-##### BY EDUCATION #####
-# <HS 
-# <HS 
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$frs,temp$wt))})
-
-# HS
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$frs,temp$wt))})
-
-# Some College
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$frs,temp$wt))})
-
-# College Grad
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$frs,temp$wt))})
-
-##### BY AGE #####
-# 45-54
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$frs,temp$wt))})
-
-# 55-64
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$frs,temp$wt))})
-
-# 65-74
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$frs,temp$wt))})
-
-# 75+
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=75);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=75);print(weighted.mean(temp$frs,temp$wt))})
-
-# 85+
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mean(temp$frs,temp$WTPFHX6))})
-
-############################################################
 ```
 
 
 ######################
 ## RISK FACTOR TABS ##
 ######################
+
+## NHANES II
+```{r}
+temp = list(nhanesII)
+length(temp)
+
+# ALL
+lapply(temp, function(x) {print(weighted.mean(x$SEX,x$WT))})
+lapply(temp, function(x) {print(weighted.mean(x$AGEYR_AT_INT,x$WT))})
+lapply(temp, function(x) {print(weighted.mean(x$lbdhdd,x$WT))})
+lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$WT))})
+lapply(temp, function(x) {print(weighted.mean(x$asbp,x$WT))})
+lapply(temp, function(x) {x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$WT))})
+# lapply(temp, function(x) {x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$WTPFQX1));print(weighted.mean(x$isDiabetic,x$WTPFQX2))})
+lapply(temp, function(x) {x$isDiabetic = ifelse(x$fpg >= 126,1,0);print(weighted.mean(x$isDiabetic,x$WT))})
+```
+
+
+## NHANES III 
+```{r}
+temp = list(nhanesIIIP1,nhanesIIIP2)
+length(temp)
+
+# ALL
+lapply(temp, function(x) {print(weighted.mean(x$HSSEX,x$WTPFQX1));print(weighted.mean(x$HSSEX,x$WTPFQX2))})
+lapply(temp, function(x) {print(weighted.mean(x$HSAGEIR,x$WTPFQX1));print(weighted.mean(x$HSAGEIR,x$WTPFQX2))})
+lapply(temp, function(x) {print(weighted.mean(x$HDP,x$WTPFQX1));print(weighted.mean(x$HDP,x$WTPFQX2))})
+lapply(temp, function(x) {print(weighted.mean(x$TCP,x$WTPFQX1));print(weighted.mean(x$TCP,x$WTPFQX2))})
+lapply(temp, function(x) {print(weighted.mean(x$PEPMNK1R,x$WTPFQX1));print(weighted.mean(x$PEPMNK1R,x$WTPFQX2))})
+lapply(temp, function(x) {x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$WTPFQX1));print(weighted.mean(x$isSmoker,x$WTPFQX2))})
+# lapply(temp, function(x) {x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$WTPFQX1));print(weighted.mean(x$isDiabetic,x$WTPFQX2))})
+lapply(temp, function(x) {x$isDiabetic = ifelse(x$fpg >= 126,1,0);print(weighted.mean(x$isDiabetic,x$WTPFQX1));print(weighted.mean(x$isDiabetic,x$WTPFQX2))})
+
+# BY EDUCATION
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);print(weighted.mean(x$riagendr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);print(weighted.mean(x$ridageyr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);print(weighted.mean(x$HDL,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$wt))})
+
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);print(weighted.mean(x$riagendr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);print(weighted.mean(x$ridageyr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);print(weighted.mean(x$HDL,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 3);x$isDiabetic = ifelse(x$lbxgh < 6.3,0,1);print(weighted.mean(x$isDiabetic,x$wt))})
+
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);print(weighted.mean(x$riagendr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);print(weighted.mean(x$ridageyr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);print(weighted.mean(x$HDL,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 4);x$isDiabetic = ifelse(x$lbxgh < 6.4,0,1);print(weighted.mean(x$isDiabetic,x$wt))})
+
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$riagendr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$ridageyr,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$HDL,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$wt))})
+lapply(temp, function(x) {x=filter(x,dmdeduc2 == 5);x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$wt))})
+```
+
+
+## NHANES continuous
 ```{r}
 
 filenames = list.files("/Users/bryankim/Documents/NBER/Framingham /Data",pattern = "_frs.dta",full.names = TRUE)

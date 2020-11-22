@@ -1,0 +1,86 @@
+---
+title: "Imputing Missing Data"
+author: "Bryan Kim"
+date: "11/14/2020"
+output: html_document
+---
+
+### Regression vs KNN Imputation Methods Results
+```{r,message=FALSE,warning=FALSE}
+library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);
+library(foreign);library(mice);library(knitr);library(tables)
+
+## "kNN" is the data with imputed FPG values using KNN method (did it in Python and just wrote a new csv file to read into R)
+kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+### I do the comparison on one cycle - nhanes 1999-2000
+nhanes = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+
+## This gets the imputed FPG values using the first regression method (FPG ~ HbA1c)
+nhanes= nhanes[complete.cases(nhanes[ , c("lbxgh")]),]; fit = lm(nhanes$fpg ~ nhanes$lbxgh);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg = pred) 
+## This gets the imputed FPG values using the second regression method (FPG ~ HbA1c + age-sex dummies)
+source("/Users/bryankim/Documents/NBER/Framingham /Code/adjust_weight_single_year.R")
+fit = lm(nhanes$fpg ~ nhanes$lbxgh + nhanes$M1 + nhanes$M2 + nhanes$M3 + nhanes$M4 + nhanes$F1 + nhanes$F2 + nhanes$F3 + nhanes$F4);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg2 = pred)
+
+nhanes = nhanes %>% mutate(reg_fpg1 = ifelse(is.na(fpg),imputed_fpg,fpg)) # First imputed variable is reg_fpg1
+nhanes = nhanes %>% mutate(reg_fpg2 = ifelse(is.na(fpg),imputed_fpg2,fpg)) # Second imputed variable is reg_fpg2
+
+## getting our imputed FPG variable using KNN method
+nhanes$fpg_knn=kNN$X1
+```
+
+### Analyzing scores between complete cases of fpg and HbA1c cases. 
+```{r,message=FALSE}
+# To start, I am seeing how similar each of the FPG and HbA1c tests for diabetes are.
+test=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+# Keeping only observations where we have BOTH FPG and HbA1c results in NHANES.
+test= test[complete.cases(test[ , c("lbxgh","fpg")]),] # Gives us 1098 observations
+# Dummy variable positive = 1 if both the FPG test and HbA1c test give us the same result for diabetes (or no diabetes)
+test = test %>% mutate(positive = ifelse((fpg >= 126 & lbxgh > 6.5) | (fpg <= 126 & lbxgh < 6.5),1,0))
+sum_pos = test %>% select(positive) %>% sum
+print(sum_pos)
+# So out of the 1098 observations, both tests give the same result for diabetes for 1031 observations (94% similarity)
+# Merging with nhanes to use imputed values
+test = merge(test,nhanes, all.x=TRUE, on="seqn")
+```
+
+### Analyzing the differences between imputation methods (knn and simple linear regression)
+```{r,message=FALSE}
+## Getting the arithmetic difference between the imputed values of the two methods
+nhanes$diff_score = nhanes$imputed_fpg - nhanes$fpg_knn # "imputed_fpg" is the imputed fpg values using linear regression: (fpg ~ HbA1c)
+# Absolute value of the mean of this "difference score".
+abs(mean(nhanes$diff_score))
+
+## CHECKING CASES
+nhanes$cross_val1 = ifelse((nhanes$reg_fpg1 >= 126 & nhanes$lbxgh > 6.5) | (nhanes$reg_fpg1 <= 126 & nhanes$lbxgh < 6.5),1,0)
+nhanes$cross_val2 = ifelse((nhanes$reg_fpg2 >= 126 & nhanes$lbxgh > 6.5) | (nhanes$reg_fpg2 <= 126 & nhanes$lbxgh < 6.5),1,0)
+nhanes$cross_val3 = ifelse((nhanes$fpg_knn >= 126 & nhanes$lbxgh > 6.5) | (nhanes$fpg_knn <= 126 & nhanes$lbxgh < 6.5),1,0)
+
+nhanes %>% select(cross_val1) %>% sum 
+nhanes %>% select(cross_val2) %>% sum
+nhanes %>% select(cross_val3) %>% sum
+
+# So there really isn't a huge difference. 
+# Using KNN, there are (2225-2134-67) = 24 observations where the imputed value differs from the HbA1c result.
+
+nhanes$simil = ifelse((nhanes$reg_fpg1 >= 126 & nhanes$fpg_knn < 126) | (nhanes$reg_fpg1 <= 126 & nhanes$fpg_knn >= 126),1,0)
+nhanes %>% select(simil) %>% sum
+
+```
+
+### INVESTIGATING SOME OF THE DIFFERENCES
+```{r}
+nhanes_subset = nhanes %>% filter(cross_val1 != cross_val2 | cross_val1 != cross_val3) 
+nhanes_subset$HbA1c = nhanes_subset$lbxgh
+nhanes_subset = nhanes_subset %>% select(HbA1c,fpg_knn,reg_fpg1,reg_fpg2)
+kable(nhanes_subset)
+
+# So it looks like for the HbA1c values really close to the cutoff of 6.5, KNN method and fpg regression differ. 
+```
+
+### How many of the discrepancies are inherent differences between the original FPG and HbA1c values? Recall there was a ~94% similarity, so 67 observations where HbA1c marked the individual as diabetic and FPG did not, or vice versa.
+```{r,message=FALSE}
+nhanes = nhanes %>% mutate(positive = ifelse((fpg >= 126 & lbxgh > 6.5) | (fpg <= 126 & lbxgh < 6.5),1,0))
+## Ignoring the NA's, which are there because we have missing FPG or HbA1c values, and filtering for cases where "positive" = 0 (inherent differences): Of this subset, 
+nhanes_subset = nhanes %>% filter(positive == 0) 
+nhanes_subset = nhanes_subset %>% filter((is.na(fpg))) # there are 7
+```

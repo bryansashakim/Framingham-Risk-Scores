@@ -1,0 +1,65 @@
+---
+title: "FRS_local2 for NHANES II and III"
+author: "Bryan Kim"
+date: "11/21/2020"
+output: pdf_document
+---
+
+### NHANES II ###
+```{r}
+# order: riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic
+##########################################
+##               1999-2000              ##
+##########################################
+nhanesII=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesII_full.dta")
+nhanesII= nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","smoke_sts","fpg")]),]
+nhanesII = nhanesII %>% filter(lbdhdd != 888)
+# Getting cox model based risk levels
+# nhanes1999_2000= nhanes1999_2000[complete.cases(nhanes1999_2000[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","isSmoker","isDiabetic")]),]
+# m_age = weighted.mean(nhanes1999_2000$ridageyr,nhanes1999_2000$wtint2yr)
+# m_HDL= weighted.mean(nhanes1999_2000$lbdhdl,nhanes1999_2000$wtint2yr)
+# m_TotChol = weighted.mean(nhanes1999_2000$lbxtc,nhanes1999_2000$wtint2yr)
+# m_sbp = weighted.mean(nhanes1999_2000$bpxsar,nhanes1999_2000$wtint2yr)
+# m_smoke = weighted.mean(nhanes1999_2000$isSmoker,nhanes1999_2000$wtint2yr)
+# m_diabetic = weighted.mean(nhanes1999_2000$isDiabetic,nhanes1999_2000$wtint2yr)
+
+nhanesII$cox_frs = mapply(get_cox_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$isSmoker,nhanes1999_2000$isDiabetic,nhanes1999_2000$wtint2yr)
+nhanesII$frs = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$smoke_sts,nhanesII$fpg)
+
+write_dta(nhanes1999_2000, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+```
+
+### NHANES III ###
+```{r}
+##########################################
+##               NHANES III          ##
+##########################################
+nhanesIII=read_dta("/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_full.dta")
+## Dropping rows where values of our risk factor variables are NA
+nhanesIII= nhanesIII[complete.cases(nhanesIII[ , c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","GHP")]),]
+nhanesIII$frs = mapply(get_frs, nhanesIII$HSSEX,nhanesIII$HSAGEIR,nhanesIII$HDP,nhanesIII$TCP,nhanesIII$PEPMNK1R,nhanesIII$smoke_sts,nhanesIII$GHP)
+nhanesIII$frs_fpg = mapply(get_frs, nhanesIII$HSSEX,nhanesIII$HSAGEIR,nhanesIII$HDP,nhanesIII$TCP,nhanesIII$PEPMNK1R,nhanesIII$smoke_sts,nhanesIII$fpg)
+#PHASE 1
+nhanesIIIP1 = filter(nhanesIII,SDPPHASE==1)
+#PHASE 2
+nhanesIIIP2 = filter(nhanesIII,SDPPHASE==2)
+nhanesIIIP1 = filter(nhanesIIIP1,GHP != 8888)
+nhanesIIIP2 = filter(nhanesIIIP2,GHP != 8888)
+write_dta(nhanesIII, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_frs.dta")
+write_dta(nhanesIIIP1, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2, "/homes/nber/kimcwa/Documents/casedeaton/FRS/nhanesIII_P2x_frs.dta")
+
+# With FPG stuff:
+nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIIIP1_full.dta")
+nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIIIP2_full.dta")
+nhanesIIIP1$frs = mapply(get_frs, nhanesIIIP1$HSSEX,nhanesIIIP1$HSAGEIR,nhanesIIIP1$HDP,nhanesIIIP1$TCP,nhanesIIIP1$PEPMNK1R,nhanesIIIP1$smoke_sts,nhanesIIIP1$fpg)
+nhanesIIIP2$frs = mapply(get_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$HDP,nhanesIIIP2$TCP,nhanesIIIP2$PEPMNK1R,nhanesIIIP2$smoke_sts,nhanesIIIP2$fpg)
+nhanesIIIP1= nhanesIIIP1[complete.cases(nhanesIIIP1[ , c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","fpg")]),]
+nhanesIIIP2= nhanesIIIP2[complete.cases(nhanesIIIP2[ , c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","fpg")]),]
+nhanesIIIP1 = nhanesIIIP1 %>% filter(HDP != 888);nhanesIIIP1 = nhanesIIIP1 %>% filter(fpg != 88888);nhanesIIIP2 = nhanesIIIP2 %>% filter(HDP != 888);nhanesIIIP2 = nhanesIIIP2 %>% filter(fpg != 88888)
+unique(nhanesIIIP1$fpg)
+write_dta(nhanesIIIP1, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P2x_frs.dta")
+```
+
+

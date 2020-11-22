@@ -15,25 +15,21 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-df = pd.read_stata("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+df = pd.read_stata("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2017_2018_frs.dta")
 ## KEEP ONLY THESE TWO
 df = df[["lbxgh","fpg"]]
 ## DROPPING ROWS WHERE LBXGH is null, because we are only predicting the null values for FPG
 df = df[df['lbxgh'].notna()]
-df.head()
-len(df)
-df.isna().any()
 scaler = MinMaxScaler()
 df = pd.DataFrame(scaler.fit_transform(df), columns = df.columns)
-df.head()
 imputer = KNNImputer(n_neighbors=9)
 df = pd.DataFrame(imputer.fit_transform(df),columns = df.columns)
-df.isna().any()
-df.head()
 df = pd.DataFrame(scaler.inverse_transform(df))
-df.head()
+
+df_final = pd.concat([df_final, df], axis=1)
+
 # len(df)
-df.to_csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+df_final.to_csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
 df.head()
 
 

@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 
-```{r}
+```{r, message=FALSE}
 ######################################################################
 #### ESTIMATING THE 10 YEAR CARDIOVASCULAR DISEASE RISK IN ADULTS ####
 ######################################################################
@@ -125,6 +125,7 @@ get_cox_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic,wt) {
 # rho_m = 1-(m_base10_survival^exp(arg1_m - arg2_m))
 ```
 
+### NHANES continuous ###
 ```{r}
 # order: riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic
 ##########################################
@@ -490,7 +491,12 @@ temp=list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes
 
 
 ## USING lapply to calculated the fitted values
+# REGRESSION #1
 temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$lbxgh);pred = predict(fit, newdata = ic(x)); mutate(x,imputed_fpg = pred)})
+temp = temp %>% lapply(function(x) {mutate(x, fpg_final = ifelse(is.na(x$fpg),x$imputed_fpg,x$fpg))})
+# REGRESSION #2
+temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$lbxgh + x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4);pred = predict(fit, newdata = ic(x)); x = mutate(x,imputed_fpg2 = pred)})
+temp = temp %>% lapply(function(x) {mutate(x, fpg_final = ifelse(is.na(x$fpg),x$imputed_fpg2,x$fpg))})
 nhanes1999_2000 = temp[[1]];nhanes2001_2002 = temp[[2]];nhanes2003_2004 = temp[[3]];nhanes2005_2006 = temp[[4]];nhanes2007_2008 = temp[[5]];nhanes2009_2010 = temp[[6]];nhanes2011_2012 = temp[[7]];nhanes2013_2014 = temp[[8]];nhanes2015_2016 = temp[[9]];nhanes2017_2018 = temp[[10]]
 
 
@@ -507,16 +513,17 @@ tidy(output)
 ######################
 ### COMPLETE CASES ###
 ######################
-nhanes1999_2000= nhanes1999_2000[complete.cases(nhanes1999_2000[ , c("riagendr","ridageyr","lbdhdl","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2001_2002= nhanes2001_2002[complete.cases(nhanes2001_2002[ , c("riagendr","ridageyr","lbdhdl","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2003_2004= nhanes2003_2004[complete.cases(nhanes2003_2004[ , c("riagendr","ridageyr","lbxhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2005_2006= nhanes2005_2006[complete.cases(nhanes2005_2006[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2007_2008= nhanes2007_2008[complete.cases(nhanes2007_2008[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2009_2010= nhanes2009_2010[complete.cases(nhanes2009_2010[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2011_2012= nhanes2011_2012[complete.cases(nhanes2011_2012[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2013_2014= nhanes2013_2014[complete.cases(nhanes2013_2014[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2015_2016= nhanes2015_2016[complete.cases(nhanes2015_2016[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
-nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","imputed_fpg")]),]
+# Paraemters: fpg_final 
+nhanes1999_2000= nhanes1999_2000[complete.cases(nhanes1999_2000[ , c("riagendr","ridageyr","lbdhdl","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2001_2002= nhanes2001_2002[complete.cases(nhanes2001_2002[ , c("riagendr","ridageyr","lbdhdl","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2003_2004= nhanes2003_2004[complete.cases(nhanes2003_2004[ , c("riagendr","ridageyr","lbxhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2005_2006= nhanes2005_2006[complete.cases(nhanes2005_2006[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2007_2008= nhanes2007_2008[complete.cases(nhanes2007_2008[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2009_2010= nhanes2009_2010[complete.cases(nhanes2009_2010[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2011_2012= nhanes2011_2012[complete.cases(nhanes2011_2012[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2013_2014= nhanes2013_2014[complete.cases(nhanes2013_2014[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2015_2016= nhanes2015_2016[complete.cases(nhanes2015_2016[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
+nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","fpg_final")]),]
 ```
 
 ######################
@@ -524,16 +531,16 @@ nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr",
 ######################
 ```{r}
 
-nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$isSmoker,nhanes1999_2000$imputed_fpg)
-nhanes2001_2002$frs = mapply(get_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$lbdhdl,nhanes2001_2002$lbxtc,nhanes2001_2002$bpxsar,nhanes2001_2002$isSmoker,nhanes2001_2002$imputed_fpg)
-nhanes2003_2004$frs = mapply(get_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$lbxhdd,nhanes2003_2004$lbxtc,nhanes2003_2004$bpxsar,nhanes2003_2004$isSmoker,nhanes2003_2004$imputed_fpg)
-nhanes2005_2006$frs = mapply(get_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$lbdhdd,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$isSmoker,nhanes2005_2006$imputed_fpg)
-nhanes2007_2008$frs = mapply(get_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$lbdhdd,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$isSmoker,nhanes2007_2008$imputed_fpg)
-nhanes2009_2010$frs = mapply(get_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$lbdhdd,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$isSmoker,nhanes2009_2010$imputed_fpg)
-nhanes2011_2012$frs = mapply(get_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$lbdhdd,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$isSmoker,nhanes2011_2012$imputed_fpg)
-nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$lbdhdd,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$isSmoker,nhanes2013_2014$imputed_fpg)
-nhanes2015_2016$frs = mapply(get_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$lbdhdd,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$isSmoker,nhanes2015_2016$imputed_fpg)
-nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$lbdhdd,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$isSmoker,nhanes2017_2018$imputed_fpg)
+nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$isSmoker,nhanes1999_2000$fpg_final)
+nhanes2001_2002$frs = mapply(get_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$lbdhdl,nhanes2001_2002$lbxtc,nhanes2001_2002$bpxsar,nhanes2001_2002$isSmoker,nhanes2001_2002$fpg_final)
+nhanes2003_2004$frs = mapply(get_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$lbxhdd,nhanes2003_2004$lbxtc,nhanes2003_2004$bpxsar,nhanes2003_2004$isSmoker,nhanes2003_2004$fpg_final)
+nhanes2005_2006$frs = mapply(get_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$lbdhdd,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$isSmoker,nhanes2005_2006$fpg_final)
+nhanes2007_2008$frs = mapply(get_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$lbdhdd,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$isSmoker,nhanes2007_2008$fpg_final)
+nhanes2009_2010$frs = mapply(get_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$lbdhdd,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$isSmoker,nhanes2009_2010$fpg_final)
+nhanes2011_2012$frs = mapply(get_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$lbdhdd,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$isSmoker,nhanes2011_2012$fpg_final)
+nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$lbdhdd,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$isSmoker,nhanes2013_2014$fpg_final)
+nhanes2015_2016$frs = mapply(get_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$lbdhdd,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$isSmoker,nhanes2015_2016$fpg_final)
+nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$lbdhdd,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$isSmoker,nhanes2017_2018$fpg_final)
 
 ```
 
@@ -541,8 +548,10 @@ nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$r
 ```{r}
 ## This is the data with imputed FPG values using KNN method
 kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+kNN = kNN[,-c(1,2,4,6,8,10,12,14,16,18,20)]
 ## example on nhanes (1999-2000)
 nhanes = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta"); nhanes= nhanes[complete.cases(nhanes[ , c("lbxgh")]),]; fit = lm(nhanes$fpg ~ nhanes$lbxgh);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg = pred)
+
 fit = lm(nhanes$fpg ~ nhanes$lbxgh + nhanes$M1 + nhanes$M2 + nhanes$M3 + nhanes$M4 + nhanes$F1 + nhanes$F2 + nhanes$F3 + nhanes$F4);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg2 = pred)
 nhanes = nhanes %>% mutate(fpg_final = ifelse(is.na(fpg),imputed_fpg,fpg))
 
@@ -586,4 +595,26 @@ nhanes$nhanes3=ifelse((nhanes$imputed_fpg>=126 & lbxgh>6.5) | (nhanes$imputed_fp
 nhanes %>% select(nhanes) %>% sum
 ```
 
+### LAPPLY IMPUTATION METHODS FROM KNN
+```{r}
+## This is the data with imputed FPG values using KNN method
+kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+kNN = kNN[,-c(1,2,4,6,8,10,12,14,16,18,20)]
 
+filenames = list.files("/Users/bryankim/Documents/NBER/Framingham /Data",pattern = "_frs.dta",full.names = TRUE)
+filenames = filenames[-c(11,12,13)]
+df_list = lapply(filenames,read_dta)
+source("/Users/bryankim/Documents/NBER/Framingham /Code/adjust_weights.R")
+temp = temp %>% lapply(function(x) {x= x[complete.cases(x[ , c("lbxgh")]),]})
+nhanes1999_2000 = temp[[1]];nhanes1999_2000$fpg_knn=kNN$X1[1:length(nhanes1999_2000$seqn)]
+nhanes2001_2002 = temp[[2]];nhanes2001_2002$fpg_knn=kNN$X1.1[1:length(nhanes2001_2002$seqn)]
+nhanes2003_2004 = temp[[3]];nhanes2003_2004$fpg_knn=kNN$X1.2[1:length(nhanes2003_2004$seqn)]
+nhanes2005_2006 = temp[[4]];nhanes2005_2006$fpg_knn=kNN$X1.3[1:length(nhanes2005_2006$seqn)]
+nhanes2007_2008 = temp[[5]];nhanes2007_2008$fpg_knn=kNN$X1.4[1:length(nhanes2007_2008$seqn)]
+nhanes2009_2010 = temp[[6]];nhanes2009_2010$fpg_knn=kNN$X1.5[1:length(nhanes2009_2010$seqn)]
+nhanes2011_2012 = temp[[7]];nhanes2011_2012$fpg_knn=kNN$X1.6[1:length(nhanes2011_2012$seqn)]
+nhanes2013_2014 = temp[[8]];nhanes2013_2014$fpg_knn=kNN$X1.7[1:length(nhanes2013_2014$seqn)]
+nhanes2015_2016 = temp[[9]];nhanes2015_2016$fpg_knn=kNN$X1.8[1:length(nhanes2015_2016$seqn)]
+nhanes2017_2018 = temp[[10]];nhanes2017_2018$fpg_knn=kNN$X1.9[1:length(nhanes2017_2018$seqn)]
+
+```
