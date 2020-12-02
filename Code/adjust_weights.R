@@ -2,7 +2,7 @@
 # 45-54, MALES & FEMALES
 #lapply(df_list, function(x) {mutate(temp, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
 temp=df_list
-temp = df_list %>% lapply(function(x) {mutate(x, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 1, 1, 0))})
 
 temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(ridageyr >= 45 & ridageyr <= 54 & riagendr == 2, 1, 0))})

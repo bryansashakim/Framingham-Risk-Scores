@@ -73,16 +73,18 @@ tempIII = list(nhanesIIIP1,nhanesIIIP2)
 length(tempIII) # should be 2
 
 # ALL
+weighted.mean(nhanesIIIP1$frs,nhanesIIIP1$wt)
+weighted.mean(nhanesIIIP2$frs,nhanesIIIP2$wt)
 weighted.mean(nhanesIIIP1$frs,nhanesIIIP1$WTPFQX1)
 weighted.mean(nhanesIIIP2$frs,nhanesIIIP2$WTPFQX2)
 
 ##### BY EDUCATION #####
 # <HS 
 # <HS 
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$frs,temp$WTPFQX1));print(weighted.mean(temp$frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$frs,temp$wt));print(weighted.mean(temp$frs,temp$wt))})
 
 # HS
-lapply(tempIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$frs,temp$WTPFQX1));print(weighted.mean(temp$frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$frs,temp$wt));print(weighted.mean(temp$frs,temp$wt))})
 
 # Some College
 lapply(tempIII, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$frs,temp$wt))})
@@ -104,7 +106,7 @@ lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);pr
 lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=75);print(weighted.mean(temp$frs,temp$wt))})
 
 # 85+
-lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mean(temp$frs,temp$WTPFHX6))})
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mean(temp$frs,temp$wt))})
 
 ############################################################
 
@@ -116,30 +118,30 @@ lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mea
 temp=list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
 
 # "ALL"
-lapply(temp, function(x) print(weighted.mean(x$frs,x$wt)))
+lapply(temp, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
 
 ##### BY EDUCATION #####
 # <HS 
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
 # HS
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 3);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 3);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
 # Some College
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 4);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 4);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
 # College Grad
-lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 5);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$dmdeduc2 == 5);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
 ##### BY AGE #####
 # 45-54
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 55-64
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 65-74
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 75+
-lapply(temp, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(temp$frs,temp$wt))})
+lapply(temp, function(x) {temp = filter(x,x$ridageyr >=75);print(weighted.mean(temp$frs,temp$wtint2yr))})
 # 85+
 lapply(temp, function(x) {temp = filter(x,x$ridageyr >= 85);print(weighted.mean(temp$frs,temp$wtint2yr))})
 
@@ -163,7 +165,7 @@ lapply(temp, function(x) {print(weighted.mean(x$lbdhdd,x$WT))})
 lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$WT))})
 lapply(temp, function(x) {print(weighted.mean(x$asbp,x$WT))})
 lapply(temp, function(x) {x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$WT))})
-# lapply(temp, function(x) {x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$WTPFQX1));print(weighted.mean(x$isDiabetic,x$WTPFQX2))})
+lapply(temp, function(x) {x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$wt));print(weighted.mean(x$isDiabetic,x$wt))})
 lapply(temp, function(x) {x$isDiabetic = ifelse(x$fpg >= 126,1,0);print(weighted.mean(x$isDiabetic,x$WT))})
 ```
 
@@ -180,7 +182,7 @@ lapply(temp, function(x) {print(weighted.mean(x$HDP,x$WTPFQX1));print(weighted.m
 lapply(temp, function(x) {print(weighted.mean(x$TCP,x$WTPFQX1));print(weighted.mean(x$TCP,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$PEPMNK1R,x$WTPFQX1));print(weighted.mean(x$PEPMNK1R,x$wt))})
 lapply(temp, function(x) {x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$WTPFQX1));print(weighted.mean(x$isSmoker,x$wt))})
-# lapply(temp, function(x) {x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$WTPFQX1));print(weighted.mean(x$isDiabetic,x$wt))})
+lapply(temp, function(x) {x$isDiabetic = ifelse(x$GHP >= 6.5,1,0);print(weighted.mean(x$isDiabetic,x$wt));print(weighted.mean(x$isDiabetic,x$wt))})
 lapply(temp, function(x) {x$isDiabetic = ifelse(x$fpg >= 126,1,0);print(weighted.mean(x$isDiabetic,x$WTPFQX1));print(weighted.mean(x$isDiabetic,x$wt))})
 
 # BY EDUCATION
@@ -305,7 +307,36 @@ df_plot %>% ggplot(aes(x = survey, y = mean_frs)) +
 ```
 
 
+# Investigating differences in FPG and HbA1c
+```{r}
+# nhanesIII
+nhanesIII$Diabetes_HbA1c = ifelse(nhanesIII$GHP >= 6.5,1,0)
+nhanesIII$Diabetes_FPG = ifelse(nhanesIII$fpg >= 126,1,0)
+nhanesIIIP1$Diabetes_HbA1c = ifelse(nhanesIIIP1$GHP >= 6.5,1,0)
+nhanesIIIP1$Diabetes_FPG = ifelse(nhanesIIIP1$fpg >= 126,1,0)
+nhanesIIIP2$Diabetes_HbA1c = ifelse(nhanesIIIP2$GHP >= 6.5,1,0)
+nhanesIIIP2$Diabetes_FPG = ifelse(nhanesIIIP2$fpg >= 126,1,0)
+#continuous nhanes
+temp=list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
+temp = temp %>% lapply(function(x) {mutate(x,Diabetes_HbA1c = ifelse(lbxgh >= 6.5,1,0));mutate(x,Diabetes_FPG = ifelse(imputed_fpg2 >= 126,1,0))})
+nhanes1999_2000 = temp[[1]]
+nhanes2001_2002 = temp[[2]]
+nhanes2003_2004 = temp[[3]]
+nhanes2005_2006 = temp[[4]]
+nhanes2007_2008 = temp[[5]]
+nhanes2009_2010 = temp[[6]]
+nhanes2011_2012 = temp[[7]]
+nhanes2013_2014 = temp[[8]]
+nhanes2015_2016 = temp[[9]]
+nhanes2017_2018 = temp[[10]]
 
+CrossTable(nhanes1999_2000$Diabetes_HbA1c,nhanes1999_2000$Diabetes_FPG,format = "SPSS")
+table(nhanesIII$Diabetes_HbA1c,nhanesIII$Diabetes_FPG)
+table(nhanesIIIP1$Diabetes_HbA1c,nhanesIIIP1$Diabetes_FPG)
+table(nhanesIIIP2$Diabetes_HbA1c,nhanesIIIP2$Diabetes_FPG)
+table(nhanesIII$Diabetes_HbA1c,nhanesIII$Diabetes_FPG)
+
+```
 
 
 
