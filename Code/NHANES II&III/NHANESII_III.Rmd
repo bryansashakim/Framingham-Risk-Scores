@@ -1,0 +1,126 @@
+---
+title: "NHANESII_III"
+author: "Bryan Kim"
+date: "1/12/2021"
+output: pdf_document
+---
+##########################################
+##               NHANES II              ##
+##########################################
+```{r}
+library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr);library(broom)
+
+nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
+## Dropping rows where FPG values are null or inapplicable
+nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
+nhanesII = nhanesII %>% filter(GRADE != 0)
+## Dropping rows where values of our risk factor variables are NA
+nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","smoke_sts","fpg")]),]
+nhanesII$frs = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$smoke_sts,nhanesII$fpg)
+
+temp=list(nhanesII)
+temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 2, 1, 0))})
+# 55-64, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M2 = ifelse(AGEYR_AT_INT >= 55 & AGEYR_AT_INT <= 64 & SEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(AGEYR_AT_INT >= 55 & AGEYR_AT_INT <= 64 & SEX == 2, 1, 0))})
+# 65-74, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(AGEYR_AT_INT >= 65 & AGEYR_AT_INT <= 74 & SEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(AGEYR_AT_INT >= 65 & AGEYR_AT_INT <= 74 & SEX == 2, 1, 0))})
+# 75+, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(AGEYR_AT_INT >= 75 & SEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(AGEYR_AT_INT >= 75 & SEX == 2, 1, 0))})
+nhanesII=temp[[1]]
+
+write_dta(nhanesII,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
+
+```
+
+##########################################
+##               NHANES III             ##
+##########################################
+```{r}
+nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
+nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
+nhanesIIIP1$frs = mapply(get_frs, nhanesIIIP1$HSSEX,nhanesIIIP1$HSAGEIR,nhanesIIIP1$HDP,nhanesIIIP1$TCP,nhanesIIIP1$PEPMNK1R,nhanesIIIP1$smoke_sts,nhanesIIIP1$fpg)
+nhanesIIIP2$frs = mapply(get_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$HDP,nhanesIIIP2$TCP,nhanesIIIP2$PEPMNK1R,nhanesIIIP2$smoke_sts,nhanesIIIP2$fpg)
+2
+# GROUPS
+temp1=list(nhanesIIIP1)
+temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
+temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
+temp1 = temp1 %>% lapply(function(x) {mutate(x, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))})
+# 55-64, MALES & FEMALES
+temp1 = temp1 %>% lapply(function(x) {mutate(x, M2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 1, 1, 0))})
+temp1 = temp1 %>% lapply(function(x) {mutate(x, F2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 2, 1, 0))})
+# 65-74, MALES & FEMALES
+temp1 = temp1 %>% lapply(function(x) {mutate(x, M3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 1, 1, 0))})
+temp1 = temp1 %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 2, 1, 0))})
+# 75+, MALES & FEMALES
+temp1 = temp1 %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
+temp1 = temp1 %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
+nhanesIIIP1=temp1[[1]]
+
+
+temp=list(nhanesIIIP2)
+temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))})
+# 55-64, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 2, 1, 0))})
+# 65-74, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 2, 1, 0))})
+# 75+, MALES & FEMALES
+temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
+temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
+nhanesIIIP2=temp[[1]]
+
+write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
+
+```
+
+#################################
+## INPUTING MISSING FPG values ##
+#################################
+```{r}
+
+## NHANES II
+nhanesII$bmisq = (nhanesII$bmi)^2
+nhanesII$bmicub = (nhanesII$bmi)^3
+
+temp=list(nhanesII)
+
+temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$bmi + x$bmisq + x$bmicub);pred = predict(fit, newdata = ic(x)); x = mutate(x,imputed_fpg2 = pred)})
+temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$bmi + x$bmisq + x$bmicub);x=augment_columns(fit,x)})
+temp = temp %>% lapply(function(x) {mutate(x, fpg_final2 = ifelse(is.na(fpg),imputed_fpg2,fpg),fpg_finalR2 = ifelse(is.na(fpg),fpg_final2 + .resid,fpg))})
+temp = temp %>% lapply(function(x) {x = x[,!(names(x) %in% c(".fitted",".se.fit",".resid",".hat",".sigma",".cooksd",".std.resid"))]})
+nhanesII=temp[[1]]
+nhanesII$fpg_final = nhanesII$.fitted+nhanesII$.std.resid
+
+
+## NHANES III
+nhanesIIIP1$BMPBMIsq = (nhanesIIIP1$BMPBMI)^2
+nhanesIIIP1$BMPBMIcub = (nhanesIIIP1$BMPBMI)^3
+nhanesIIIP2$BMPBMIsq = (nhanesIIIP2$BMPBMI)^2
+nhanesIIIP2$BMPBMIcub = (nhanesIIIP2$BMPBMI)^3
+
+temp=list(nhanesIIIP1,nhanesIIIP2)
+temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$BMPBMI + x$BMPBMIsq + x$BMPBMIcub);pred = predict(fit, newdata = ic(x)); x = mutate(x,imputed_fpg2 = pred)})
+temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$BMPBMI + x$BMPBMIsq + x$BMPBMIcub);x=augment_columns(fit,x)})
+temp = temp %>% lapply(function(x) {mutate(x, fpg_final2 = ifelse(is.na(fpg),imputed_fpg2,fpg),fpg_finalR2 = ifelse(is.na(fpg),fpg_final2 + .resid,fpg))})
+temp = temp %>% lapply(function(x) {x = x[,!(names(x) %in% c(".fitted",".se.fit",".resid",".hat",".sigma",".cooksd",".std.resid"))]})
+nhanesIIIP1=temp[[1]];nhanesIIIP2=temp[[2]]
+
+nhanesIIIP1$fpg_final = nhanesIIIP1$.fitted+nhanesIIIP1$.std.resid
+nhanesIIIP2$fpg_final = nhanesIIIP2$.fitted+nhanesIIIP2$.std.resid
+
+
+# delete unecessary columns
+nhanesII=nhanesII %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
+nhanesIIIP1=nhanesIIIP1 %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
+nhanesIIIP2=nhanesIIIP2 %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
+```

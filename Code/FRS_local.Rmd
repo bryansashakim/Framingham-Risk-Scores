@@ -11,7 +11,7 @@ output: pdf_document
 #### ESTIMATING THE 10 YEAR CARDIOVASCULAR DISEASE RISK IN ADULTS ####
 ######################################################################
 
-# Originating from the Framingham Risk Study, the model is based on a Cox Proportional Hazard Model
+# Originating from the Case DeatonRisk Study, the model is based on a Cox Proportional Hazard Model
 
 ### Required packages ###
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr)
@@ -131,7 +131,7 @@ get_cox_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic,wt) {
 ##########################################
 ##               1999-2000              ##
 ##########################################
-nhanes1999_2000=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+nhanes1999_2000=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_1999_2000_frs.dta")
 # Getting cox model based risk levels
 nhanes1999_2000= nhanes1999_2000[complete.cases(nhanes1999_2000[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes1999_2000$ridageyr,nhanes1999_2000$wtint2yr)
@@ -144,8 +144,8 @@ m_diabetic = weighted.mean(nhanes1999_2000$isDiabetic,nhanes1999_2000$wtint2yr)
 nhanes1999_2000$cox_frs = mapply(get_cox_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$isSmoker,nhanes1999_2000$isDiabetic,nhanes1999_2000$wtint2yr)
 nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$lbdhdl,nhanes1999_2000$lbxtc,nhanes1999_2000$bpxsar,nhanes1999_2000$isSmoker,nhanes1999_2000$fpg)
 
-write_dta(nhanes1999_2000, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
-write_dta(nhanes1999_2000 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdl,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_imp_frs.dta")
+write_dta(nhanes1999_2000, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_1999_2000_frs.dta")
+write_dta(nhanes1999_2000 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdl,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_1999_2000_imp_frs.dta")
 
 
 ##########################################
@@ -153,7 +153,7 @@ write_dta(nhanes1999_2000 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdl,lbxgh,lb
 ##########################################
 
 
-nhanes2001_2002=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2001_2002_frs.dta")
+nhanes2001_2002=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2001_2002_frs.dta")
 # Getting cox model based risk levels
 nhanes2001_2002= nhanes2001_2002[complete.cases(nhanes2001_2002[ , c("riagendr","ridageyr","lbdhdl","lbxtc","bpxsar","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2001_2002$ridageyr,nhanes2001_2002$wtint2yr)
@@ -166,8 +166,8 @@ m_diabetic = weighted.mean(nhanes2001_2002$isDiabetic,nhanes2001_2002$wtint2yr)
 nhanes2001_2002$cox_frs = mapply(get_cox_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$lbdhdl,nhanes2001_2002$lbxtc,nhanes2001_2002$bpxsar,nhanes2001_2002$isSmoker,nhanes2001_2002$isDiabetic,nhanes2001_2002$wtint2yr)
 nhanes2001_2002$frs = mapply(get_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$lbdhdl,nhanes2001_2002$lbxtc,nhanes2001_2002$bpxsar,nhanes2001_2002$isSmoker,nhanes2001_2002$fpg)
 
-write_dta(nhanes2001_2002, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2001_2002_frs.dta")
-write_dta(nhanes2001_2002 %>% select(seqn,riagendr,ridageyr,asbp,lbxtc,lbxgh,lbdhdl,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2001_2002_imp_frs.dta")
+write_dta(nhanes2001_2002, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2001_2002_frs.dta")
+write_dta(nhanes2001_2002 %>% select(seqn,riagendr,ridageyr,asbp,lbxtc,lbxgh,lbdhdl,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2001_2002_imp_frs.dta")
 
 
 ##########################################
@@ -175,7 +175,7 @@ write_dta(nhanes2001_2002 %>% select(seqn,riagendr,ridageyr,asbp,lbxtc,lbxgh,lbd
 ##########################################
 
 
-nhanes2003_2004=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2003_2004_frs.dta")
+nhanes2003_2004=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2003_2004_frs.dta")
 # Getting cox model based risk levels
 nhanes2003_2004= nhanes2003_2004[complete.cases(nhanes2003_2004[ , c("riagendr","ridageyr","lbxhdd","lbxtc","bpxsar","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2003_2004$ridageyr,nhanes2003_2004$wtint2yr)
@@ -188,15 +188,15 @@ m_diabetic = weighted.mean(nhanes2003_2004$isDiabetic,nhanes2003_2004$wtint2yr)
 nhanes2003_2004$cox_frs = mapply(get_cox_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$lbxhdd,nhanes2003_2004$lbxtc,nhanes2003_2004$bpxsar,nhanes2003_2004$isSmoker,nhanes2003_2004$isDiabetic,nhanes2003_2004$wtint2yr)
 nhanes2003_2004$frs = mapply(get_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$lbxhdd,nhanes2003_2004$lbxtc,nhanes2003_2004$bpxsar,nhanes2003_2004$isSmoker,nhanes2003_2004$fpg)
 
-write_dta(nhanes2003_2004, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2003_2004_frs.dta")
-write_dta(nhanes2003_2004 %>% select(seqn,riagendr,ridageyr,asbp,lbxhdd,lbxgh,lbxtc,lbxgh,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2003_2004_imp_frs.dta")
+write_dta(nhanes2003_2004, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2003_2004_frs.dta")
+write_dta(nhanes2003_2004 %>% select(seqn,riagendr,ridageyr,asbp,lbxhdd,lbxgh,lbxtc,lbxgh,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2003_2004_imp_frs.dta")
 
 ##########################################
 ##               2005_2006            ##
 ##########################################
 
 
-nhanes2005_2006=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2005_2006_frs.dta")
+nhanes2005_2006=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2005_2006_frs.dta")
 # Getting cox model based risk levels
 nhanes2005_2006= nhanes2005_2006[complete.cases(nhanes2005_2006[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2005_2006$ridageyr,nhanes2005_2006$wtint2yr)
@@ -209,14 +209,14 @@ m_diabetic = weighted.mean(nhanes2005_2006$isDiabetic,nhanes2005_2006$wtint2yr)
 nhanes2005_2006$cox_frs = mapply(get_cox_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$lbdhdd,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$isSmoker,nhanes2005_2006$isDiabetic,nhanes2005_2006$wtint2yr)
 nhanes2005_2006$frs = mapply(get_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$lbdhdd,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$isSmoker,nhanes2005_2006$fpg)
 
-write_dta(nhanes2005_2006, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2005_2006_frs.dta")
-write_dta(nhanes2005_2006 %>% select(seqn,riagendr,ridageyr,asbp,lbxgh,lbdhdd,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2005_2006_imp_frs.dta")
+write_dta(nhanes2005_2006, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2005_2006_frs.dta")
+write_dta(nhanes2005_2006 %>% select(seqn,riagendr,ridageyr,asbp,lbxgh,lbdhdd,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2005_2006_imp_frs.dta")
 
 ##########################################
 ##               2007_2008          ##
 ##########################################
 
-nhanes2007_2008=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2007_2008_frs.dta")
+nhanes2007_2008=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2007_2008_frs.dta")
 # Getting cox model based risk levels
 nhanes2007_2008= nhanes2007_2008[complete.cases(nhanes2007_2008[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2007_2008$ridageyr,nhanes2007_2008$wtint2yr)
@@ -229,8 +229,8 @@ m_diabetic = weighted.mean(nhanes2007_2008$isDiabetic,nhanes2007_2008$wtint2yr)
 nhanes2007_2008$cox_frs = mapply(get_cox_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$lbdhdd,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$isSmoker,nhanes2007_2008$isDiabetic,nhanes2007_2008$wtint2yr)
 nhanes2007_2008$frs = mapply(get_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$lbdhdd,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$isSmoker,nhanes2007_2008$fpg)
 
-write_dta(nhanes2007_2008, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2007_2008_frs.dta")
-write_dta(nhanes2007_2008 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxtc,lbxgh,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2007_2008_imp_frs.dta")
+write_dta(nhanes2007_2008, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2007_2008_frs.dta")
+write_dta(nhanes2007_2008 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxtc,lbxgh,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2007_2008_imp_frs.dta")
 
 
 ##########################################
@@ -238,7 +238,7 @@ write_dta(nhanes2007_2008 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxtc,lb
 ##########################################
 
 
-nhanes2009_2010=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2009_2010_frs.dta")
+nhanes2009_2010=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2009_2010_frs.dta")
 # Getting cox model based risk levels
 nhanes2009_2010= nhanes2009_2010[complete.cases(nhanes2009_2010[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2009_2010$ridageyr,nhanes2009_2010$wtint2yr)
@@ -251,14 +251,14 @@ m_diabetic = weighted.mean(nhanes2009_2010$isDiabetic,nhanes2009_2010$wtint2yr)
 nhanes2009_2010$cox_frs = mapply(get_cox_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$lbdhdd,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$isSmoker,nhanes2009_2010$isDiabetic,nhanes2009_2010$wtint2yr)
 nhanes2009_2010$frs = mapply(get_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$lbdhdd,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$isSmoker,nhanes2009_2010$fpg)
 
-write_dta(nhanes2009_2010, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2009_2010_frs.dta")
-write_dta(nhanes2009_2010 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2009_2010_imp_frs.dta")
+write_dta(nhanes2009_2010, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2009_2010_frs.dta")
+write_dta(nhanes2009_2010 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2009_2010_imp_frs.dta")
 
 ##########################################
 ##               2009_2010          ##
 ##########################################
 
-nhanes2011_2012=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2011_2012_frs.dta")
+nhanes2011_2012=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2011_2012_frs.dta")
 # Getting cox model based risk levels
 nhanes2011_2012= nhanes2011_2012[complete.cases(nhanes2011_2012[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2011_2012$ridageyr,nhanes2011_2012$wtint2yr)
@@ -271,15 +271,15 @@ m_diabetic = weighted.mean(nhanes2011_2012$isDiabetic,nhanes2011_2012$wtint2yr)
 nhanes2011_2012$cox_frs = mapply(get_cox_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$lbdhdd,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$isSmoker,nhanes2011_2012$isDiabetic,nhanes2011_2012$wtint2yr)
 nhanes2011_2012$frs = mapply(get_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$lbdhdd,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$isSmoker,nhanes2011_2012$fpg)
 
-write_dta(nhanes2011_2012, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2011_2012_frs.dta")
-write_dta(nhanes2011_2012 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2011_2012_imp_frs.dta")
+write_dta(nhanes2011_2012, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2011_2012_frs.dta")
+write_dta(nhanes2011_2012 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2011_2012_imp_frs.dta")
 
 
 ##########################################
 ##               2009_2010          ##
 ##########################################
 
-nhanes2013_2014=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2013_2014_frs.dta")
+nhanes2013_2014=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2013_2014_frs.dta")
 # Getting cox model based risk levels
 nhanes2013_2014= nhanes2013_2014[complete.cases(nhanes2013_2014[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2013_2014$ridageyr,nhanes2013_2014$wtint2yr)
@@ -292,15 +292,15 @@ m_diabetic = weighted.mean(nhanes2013_2014$isDiabetic,nhanes2013_2014$wtint2yr)
 nhanes2013_2014$cox_frs = mapply(get_cox_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$lbdhdd,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$isSmoker,nhanes2013_2014$isDiabetic,nhanes2013_2014$wtint2yr)
 nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$lbdhdd,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$isSmoker,nhanes2013_2014$fpg)
 
-write_dta(nhanes2013_2014, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2013_2014_frs.dta")
-write_dta(nhanes2013_2014 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2013_2014_imp_frs.dta")
+write_dta(nhanes2013_2014, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2013_2014_frs.dta")
+write_dta(nhanes2013_2014 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2013_2014_imp_frs.dta")
 
 
 ##########################################
 ##               2009_2010          ##
 ##########################################
 
-nhanes2015_2016=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2015_2016_frs.dta")
+nhanes2015_2016=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2015_2016_frs.dta")
 # Getting cox model based risk levels
 nhanes2015_2016= nhanes2015_2016[complete.cases(nhanes2015_2016[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2015_2016$ridageyr,nhanes2015_2016$wtint2yr)
@@ -313,15 +313,15 @@ m_diabetic = weighted.mean(nhanes2015_2016$isDiabetic,nhanes2015_2016$wtint2yr)
 nhanes2015_2016$cox_frs = mapply(get_cox_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$lbdhdd,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$isSmoker,nhanes2015_2016$isDiabetic,nhanes2015_2016$wtint2yr)
 nhanes2015_2016$frs = mapply(get_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$lbdhdd,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$isSmoker,nhanes2015_2016$fpg)
 
-write_dta(nhanes2015_2016, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2015_2016_frs.dta")
-write_dta(nhanes2015_2016 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2015_2016_imp_frs.dta")
+write_dta(nhanes2015_2016, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2015_2016_frs.dta")
+write_dta(nhanes2015_2016 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2015_2016_imp_frs.dta")
 
 
 ##########################################
 ##               2009_2010          ##
 ##########################################
 
-nhanes2017_2018=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2017_2018_frs.dta")
+nhanes2017_2018=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2017_2018_frs.dta")
 # Getting cox model based risk levels
 nhanes2017_2018= nhanes2017_2018[complete.cases(nhanes2017_2018[ , c("riagendr","ridageyr","lbdhdd","lbxtc","asbp","isSmoker","isDiabetic")]),]
 m_age = weighted.mean(nhanes2017_2018$ridageyr,nhanes2017_2018$wtint2yr)
@@ -335,22 +335,22 @@ nhanes2017_2018$cox_frs = mapply(get_cox_frs, nhanes2017_2018$riagendr,nhanes201
 nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$lbdhdd,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$isSmoker,nhanes2017_2018$fpg)
 
 
-write_dta(nhanes2017_2018, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2017_2018_frs.dta")
-write_dta(nhanes2017_2018 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2017_2018_imp_frs.dta")
+write_dta(nhanes2017_2018, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2017_2018_frs.dta")
+write_dta(nhanes2017_2018 %>% select(seqn,riagendr,ridageyr,asbp,lbdhdd,lbxgh,lbxtc,isSmoker,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt,fpg), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2017_2018_imp_frs.dta")
 
 ##########################################
 ##               NHANES II              ##
 ##########################################
-write_dta(nhanesII %>% select(SEQN,SEX,AGEYR_AT_INT,asbp,lbdhdd,lbxtc,smoke_sts,fpg,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesII_imp_frs.dta")
+write_dta(nhanesII %>% select(SEQN,SEX,AGEYR_AT_INT,asbp,lbdhdd,lbxtc,smoke_sts,fpg,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_imp_frs.dta")
 
 
 ##########################################
 ##               NHANES III          ##
 ##########################################
-nhanesIII=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_frs.dta")
+nhanesIII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_frs.dta")
 
-nhanesIIIP1=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P1x_frs.dta")
-nhanesIIIP2=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P2x_frs.dta")
+nhanesIIIP1=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
+nhanesIIIP2=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
 
 ## Dropping rows where values of our risk factor variables are NA
 nhanesIII= nhanesIII[complete.cases(nhanesIII[ , c("HSSEX","HSAGEIR","HDP","TCP","PEPMNK1R","smoke_sts","isDiabetic")]),]
@@ -365,12 +365,12 @@ nhanesIIIP2$cox_frs = mapply(get_cox_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,
 # THIS WAS PREVIOUSLY A PROBLEM - INFLATED THE GLYCOHEMOGLOBIN NUMBERS
 # nhanesIIIP1 = filter(nhanesIIIP1,GHP != 8888)
 # nhanesIIIP2 = filter(nhanesIIIP2,GHP != 8888)
-write_dta(nhanesIIIP1, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_frs.dta")
-write_dta(nhanesIIIP1, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P1x_frs.dta")
-write_dta(nhanesIIIP2, "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIII_P2x_frs.dta")
+write_dta(nhanesIIIP1, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_frs.dta")
+write_dta(nhanesIIIP1, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2, "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
 
-write_dta(nhanesIIIP1 %>% select(SEQN,HSSEX,HSAGEIR,HDP,PEPMNK1R,TCP,fpg,smoke_sts,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIIIP1_imp_frs.dta")
-write_dta(nhanesIIIP2 %>% select(SEQN,HSSEX,HSAGEIR,HDP,PEPMNK1R,TCP,fpg,smoke_sts,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt), "/Users/bryankim/Documents/NBER/Framingham /Data/nhanesIIIP2_imp_frs.dta")
+write_dta(nhanesIIIP1 %>% select(SEQN,HSSEX,HSAGEIR,HDP,PEPMNK1R,TCP,fpg,smoke_sts,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIIIP1_imp_frs.dta")
+write_dta(nhanesIIIP2 %>% select(SEQN,HSSEX,HSAGEIR,HDP,PEPMNK1R,TCP,fpg,smoke_sts,M1,F1,M2,F2,M3,F3,M4,F4,frs,wt), "/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIIIP2_imp_frs.dta")
 
 
 ```
@@ -479,30 +479,30 @@ for (input in c("fpg")) {
 ```
 
 
-nhanes1999_2000=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
-nhanes2001_2002=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2001_2002_frs.dta")
-nhanes2003_2004=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2003_2004_frs.dta")
-nhanes2005_2006=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2005_2006_frs.dta")
-nhanes2007_2008=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2007_2008_frs.dta")
-nhanes2009_2010=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2009_2010_frs.dta")
-nhanes2011_2012=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2011_2012_frs.dta")
-nhanes2013_2014=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2013_2014_frs.dta")
-nhanes2015_2016=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2015_2016_frs.dta")
-nhanes2017_2018=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_2017_2018_frs.dta")
+nhanes1999_2000=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_1999_2000_frs.dta")
+nhanes2001_2002=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2001_2002_frs.dta")
+nhanes2003_2004=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2003_2004_frs.dta")
+nhanes2005_2006=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2005_2006_frs.dta")
+nhanes2007_2008=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2007_2008_frs.dta")
+nhanes2009_2010=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2009_2010_frs.dta")
+nhanes2011_2012=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2011_2012_frs.dta")
+nhanes2013_2014=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2013_2014_frs.dta")
+nhanes2015_2016=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2015_2016_frs.dta")
+nhanes2017_2018=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2017_2018_frs.dta")
 
 ##############
 ## PIPELINE ##
 ##############
 ```{r}
 
-filenames = list.files("/Users/bryankim/Documents/NBER/Framingham /Data",pattern = "_frs.dta",full.names = TRUE)
+filenames = list.files("/Users/bryankim/Documents/NBER/Case Deaton/Data",pattern = "_frs.dta",full.names = TRUE)
 filenames = filenames[c(1,3,5,7,9,11,13,15,17,19)]
 df_list = lapply(filenames,read_dta)
 
 ############################
 ### RUN adjust_weights.R ###
 ############################
-source("/Users/bryankim/Documents/NBER/Framingham /Code/adjust_weights.R")
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/adjust_weights.R")
 
 
 ```
@@ -576,10 +576,10 @@ nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$r
 ### IMPUTATION METHODS
 ```{r}
 ## This is the data with imputed FPG values using KNN method
-kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+kNN=read.csv("/Users/bryankim/Documents/NBER/Case Deaton/Data/kNN.csv")
 kNN = kNN[,-c(1,2,4,6,8,10,12,14,16,18,20)]
 ## example on nhanes (1999-2000)
-nhanes = read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta"); nhanes= nhanes[complete.cases(nhanes[ , c("lbxgh")]),]; fit = lm(nhanes$fpg ~ nhanes$lbxgh);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg = pred)
+nhanes = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_1999_2000_frs.dta"); nhanes= nhanes[complete.cases(nhanes[ , c("lbxgh")]),]; fit = lm(nhanes$fpg ~ nhanes$lbxgh);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg = pred)
 
 fit = lm(nhanes$fpg ~ nhanes$lbxgh + nhanes$M1 + nhanes$M2 + nhanes$M3 + nhanes$M4 + nhanes$F1 + nhanes$F2 + nhanes$F3 + nhanes$F4);pred = predict(fit, newdata = ic(nhanes)); nhanes = mutate(nhanes,imputed_fpg2 = pred)
 nhanes = nhanes %>% mutate(fpg_final = ifelse(is.na(fpg),imputed_fpg,fpg))
@@ -588,7 +588,7 @@ nhanes$fpg_knn=kNN$X1
 
 ### Analyzing scores between complete cases of fpg and HbA1c cases. 
 # I am seeing how similar each of the FPG and HbA1c tests for diabetes are. 
-test=read_dta("/Users/bryankim/Documents/NBER/Framingham /Data/nhanes_1999_2000_frs.dta")
+test=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_1999_2000_frs.dta")
 # Keeping only observations where we have BOTH FPG and HbA1c results in NHANES.
 test= test[complete.cases(test[ , c("lbxgh","fpg")]),] # Gives us 1098 observations
 # Dummy variable positive = 1 if both the FPG test and HbA1c test give us the same result for diabetes (or no diabetes)
@@ -627,13 +627,13 @@ nhanes %>% select(nhanes) %>% sum
 ### LAPPLY IMPUTATION METHODS FROM KNN
 ```{r}
 ## This is the data with imputed FPG values using KNN method
-kNN=read.csv("/Users/bryankim/Documents/NBER/Framingham /Data/kNN.csv")
+kNN=read.csv("/Users/bryankim/Documents/NBER/Case Deaton/Data/kNN.csv")
 kNN = kNN[,-c(1,2,4,6,8,10,12,14,16,18,20)]
 
-filenames = list.files("/Users/bryankim/Documents/NBER/Framingham /Data",pattern = "_frs.dta",full.names = TRUE)
+filenames = list.files("/Users/bryankim/Documents/NBER/Case Deaton/Data",pattern = "_frs.dta",full.names = TRUE)
 filenames = filenames[-c(11,12,13)]
 df_list = lapply(filenames,read_dta)
-source("/Users/bryankim/Documents/NBER/Framingham /Code/adjust_weights.R")
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/adjust_weights.R")
 temp = temp %>% lapply(function(x) {x= x[complete.cases(x[ , c("lbxgh")]),]})
 nhanes1999_2000 = temp[[1]];nhanes1999_2000$fpg_knn=kNN$X1[1:length(nhanes1999_2000$seqn)]
 nhanes2001_2002 = temp[[2]];nhanes2001_2002$fpg_knn=kNN$X1.1[1:length(nhanes2001_2002$seqn)]

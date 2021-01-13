@@ -16,24 +16,26 @@ output: pdf_document
 weighted.mean(nhanesII$frs,nhanesII$exam_final_wt)
 weighted.mean(nhanesII$frs,nhanesII$wt)
 
+weighted.mean(nhanesII$frs_fpg,nhanesII$exam_final_wt)
+weighted.mean(nhanesII$frs_fpg,nhanesII$exam_final_wt)
+
+table(nhanesII$GRADE)
 
 #FOR NHANES II
 nhanesII = nhanesII %>% filter(GRADE != 88)
 tempII = list(nhanesII)
-length(tempII) # should be 2
+length(tempII) # should be 1
 ##### BY EDUCATION #####
 # <HS 
 # <HS 
-lapply(tempII, function(x) {temp = filter(x,x$GRADE < 34);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempII, function(x) {temp = filter(x,x$GRADE < 34);print(weighted.mean(temp$frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE < 34);print(weighted.mean(temp$frs_fpg,temp$exam_final_wt))})
 
 # HS
-lapply(tempII, function(x) {temp = filter(x,x$GRADE == 34 & x$GRADE_COMPL == 1);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempII, function(x) {temp = filter(x,x$GRADE == 34 & x$GRADE_COMPL == 1);print(weighted.mean(temp$frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 34 & x$GRADE_COMPL == 1);print(weighted.mean(temp$frs_fpg,temp$exam_final_wt))})
 
 # Some College
 lapply(tempII, function(x) {temp = filter(x,x$GRADE > 34 & x$GRADE < 45);print(weighted.mean(temp$frs,temp$wt))})
-lapply(tempII, function(x) {temp = filter(x,x$GRADE > 34 & x$GRADE < 45);print(weighted.mean(temp$frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE > 34 & x$GRADE < 45);print(weighted.mean(temp$frs_fpg,temp$exam_final_wt))})
 
 # College Grad
 lapply(tempII, function(x) {temp = filter(x,x$GRADE == 45);print(weighted.mean(temp$frs,temp$wt))})

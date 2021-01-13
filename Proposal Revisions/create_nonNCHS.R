@@ -3,6 +3,8 @@ library(janitor)
 library(data.table)
 library(foreign)
 library(usmap)
+library(haven)
+
 census=readxl::read_xls("/Users/bryankim/Documents/TEMPORARY FILES/tab03.xls")
 nber=read.csv("/Users/bryankim/Documents/TEMPORARY FILES/cencounts.csv")
 
@@ -35,7 +37,8 @@ df_census = df_census %>%
  # setnames(old = "fips.x",new="fips") %>% 
 
 
-write.foreign(df_census, "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions//census_data.txt", "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions/census_data.sas",   package="SAS")
+write_sas(df_census, "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions/census_data.sas7bdat")
+write_sas(df_census, "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions/census_data.sas7bdat")
 
 
 hi=read.csv("/Users/bryankim/Documents/TEMPORARY FILES/ACSST5Y2012.S2701_2020-12-29T133216/ACSST5Y2012.S2701_data_with_overlays_2020-12-29T133206.csv")
@@ -73,7 +76,7 @@ df_acs=df_acs[,-c(1)]
 
 df_acs = df_acs %>% select(state,county,STATE2K,CNTY2K,per_ui_less_hs,per_ui_some_clg,per_ui_clg_grad)
 
-write.foreign(df_acs, "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions//acs_data.txt", "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions/acs_data.sas",   package="SAS")
+write_sas(df_acs, "/Users/bryankim/Documents/NBER/Case Deaton/Proposal Revisions/acs_data.sas7bdat")
 
 # save df_census and df_acs
 
