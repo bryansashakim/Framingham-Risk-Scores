@@ -7,20 +7,18 @@ output: pdf_document
 ##########################################
 ##               NHANES II              ##
 ##########################################
-```{r}
+```{r message=FALSE}
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr);library(broom)
 
 nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
 ## Dropping rows where FPG values are null or inapplicable
-nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
-nhanesII = nhanesII %>% filter(GRADE != 0)
+# nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
+# nhanesII = nhanesII %>% filter(GRADE != 0)
 ## Dropping rows where values of our risk factor variables are NA
 nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","smoke_sts","fpg")]),]
-nhanesII$frs = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$smoke_sts,nhanesII$fpg)
-
 
 # get the weight variables
-source("/Users/bryankim/Documents/NBER/Case Deaton/Code/create_age_sex_vars.R")
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/create_age_sex_weight_vars.R")
 
 temp=list(nhanesII)
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})

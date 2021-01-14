@@ -9,6 +9,8 @@ nhanes2013_2014=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes
 nhanes2015_2016=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2015_2016_frs.dta")
 nhanes2017_2018=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanes_2017_2018_frs.dta")
 
+df_list = list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
+
 ############################
 ### RUN adjust_weights.R ###
 ############################
