@@ -18,6 +18,10 @@ nhanesII = nhanesII %>% filter(GRADE != 0)
 nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","smoke_sts","fpg")]),]
 nhanesII$frs = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$smoke_sts,nhanesII$fpg)
 
+
+# get the weight variables
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/create_age_sex_vars.R")
+
 temp=list(nhanesII)
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
@@ -31,9 +35,25 @@ temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(AGEYR_AT_INT >= 65 & A
 # 75+, MALES & FEMALES
 temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(AGEYR_AT_INT >= 75 & SEX == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(AGEYR_AT_INT >= 75 & SEX == 2, 1, 0))})
+
+year="nhanesII"
+  for (sex in c("M","F")) {
+    for (cat in c(1,2,3)) {
+      assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(exam_final_wt) %>% sum)
+  }
+  }
+
+
+temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(exam_final_wt)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesII))),
+                                            F1 == 1 ~ eval(exam_final_wt)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesII))),
+                                            M2 == 1 ~ eval(exam_final_wt)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesII))),
+                                            F2 == 1 ~ eval(exam_final_wt)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesII))),
+                                            M3 == 1 ~ eval(exam_final_wt)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesII))),
+                                            F3 == 1 ~ eval(exam_final_wt)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesII))),
+                                            TRUE ~ NA_real_))
+
 nhanesII=temp[[1]]
 
-write_dta(nhanesII,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
 
 ```
 
@@ -43,9 +63,7 @@ write_dta(nhanesII,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_ful
 ```{r}
 nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
 nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
-nhanesIIIP1$frs = mapply(get_frs, nhanesIIIP1$HSSEX,nhanesIIIP1$HSAGEIR,nhanesIIIP1$HDP,nhanesIIIP1$TCP,nhanesIIIP1$PEPMNK1R,nhanesIIIP1$smoke_sts,nhanesIIIP1$fpg)
-nhanesIIIP2$frs = mapply(get_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$HDP,nhanesIIIP2$TCP,nhanesIIIP2$PEPMNK1R,nhanesIIIP2$smoke_sts,nhanesIIIP2$fpg)
-2
+
 # GROUPS
 temp1=list(nhanesIIIP1)
 temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
@@ -60,6 +78,25 @@ temp1 = temp1 %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAG
 # 75+, MALES & FEMALES
 temp1 = temp1 %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
 temp1 = temp1 %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
+
+year="nhanesIIIP1"
+ for (sex in c("M","F")) {
+    for (cat in c(1,2,3,4)) {
+      assign(paste("w_",sex,cat,"_",year,sep = ""),temp1[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(WTPFQX1) %>% sum)
+  }
+  }
+
+
+temp1[[1]] = mutate(temp1[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX1)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesIIIP1))),
+                                            F1 == 1 ~ eval(WTPFQX1)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesIIIP1))),
+                                            M2 == 1 ~ eval(WTPFQX1)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesIIIP1))),
+                                            F2 == 1 ~ eval(WTPFQX1)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesIIIP1))),
+                                            M3 == 1 ~ eval(WTPFQX1)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesIIIP1))),
+                                            F3 == 1 ~ eval(WTPFQX1)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesIIIP1))),
+                                            M4 == 1 ~ eval(WTPFQX1)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP1))),
+                                            F4 == 1 ~ eval(WTPFQX1)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP1))),
+                                            TRUE ~ NA_real_))
+
 nhanesIIIP1=temp1[[1]]
 
 
@@ -76,6 +113,25 @@ temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAGEI
 # 75+, MALES & FEMALES
 temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
+
+year="nhanesIIIP2"
+ for (sex in c("M","F")) {
+    for (cat in c(1,2,3,4)) {
+      assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(WTPFQX2) %>% sum)
+  }
+  }
+
+
+temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX2)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesIIIP2))),
+                                            F1 == 1 ~ eval(WTPFQX2)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesIIIP2))),
+                                            M2 == 1 ~ eval(WTPFQX2)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesIIIP2))),
+                                            F2 == 1 ~ eval(WTPFQX2)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesIIIP2))),
+                                            M3 == 1 ~ eval(WTPFQX2)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesIIIP2))),
+                                            F3 == 1 ~ eval(WTPFQX2)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesIIIP2))),
+                                            M4 == 1 ~ eval(WTPFQX2)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP2))),
+                                            F4 == 1 ~ eval(WTPFQX2)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP2))),
+                                            TRUE ~ NA_real_))
+
 nhanesIIIP2=temp[[1]]
 
 write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
@@ -97,10 +153,12 @@ temp=list(nhanesII)
 temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$bmi + x$bmisq + x$bmicub);pred = predict(fit, newdata = ic(x)); x = mutate(x,imputed_fpg2 = pred)})
 temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$bmi + x$bmisq + x$bmicub);x=augment_columns(fit,x)})
 temp = temp %>% lapply(function(x) {mutate(x, fpg_final2 = ifelse(is.na(fpg),imputed_fpg2,fpg),fpg_finalR2 = ifelse(is.na(fpg),fpg_final2 + .resid,fpg))})
-temp = temp %>% lapply(function(x) {x = x[,!(names(x) %in% c(".fitted",".se.fit",".resid",".hat",".sigma",".cooksd",".std.resid"))]})
+# temp = temp %>% lapply(function(x) {x = x[,!(names(x) %in% c(".fitted",".se.fit",".resid",".hat",".sigma",".cooksd",".std.resid"))]})
 nhanesII=temp[[1]]
 nhanesII$fpg_final = nhanesII$.fitted+nhanesII$.std.resid
 
+# delete unecessary columns
+nhanesII=nhanesII %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
 
 ## NHANES III
 nhanesIIIP1$BMPBMIsq = (nhanesIIIP1$BMPBMI)^2
@@ -112,15 +170,18 @@ temp=list(nhanesIIIP1,nhanesIIIP2)
 temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$BMPBMI + x$BMPBMIsq + x$BMPBMIcub);pred = predict(fit, newdata = ic(x)); x = mutate(x,imputed_fpg2 = pred)})
 temp = temp %>% lapply(function(x) {fit = lm(x$fpg ~ x$M1 + x$M2 + x$M3 + x$M4 + x$F1 + x$F2 + x$F3 + x$F4 + x$BMPBMI + x$BMPBMIsq + x$BMPBMIcub);x=augment_columns(fit,x)})
 temp = temp %>% lapply(function(x) {mutate(x, fpg_final2 = ifelse(is.na(fpg),imputed_fpg2,fpg),fpg_finalR2 = ifelse(is.na(fpg),fpg_final2 + .resid,fpg))})
-temp = temp %>% lapply(function(x) {x = x[,!(names(x) %in% c(".fitted",".se.fit",".resid",".hat",".sigma",".cooksd",".std.resid"))]})
+# temp = temp %>% lapply(function(x) {x = x[,!(names(x) %in% c(".fitted",".se.fit",".resid",".hat",".sigma",".cooksd",".std.resid"))]})
 nhanesIIIP1=temp[[1]];nhanesIIIP2=temp[[2]]
 
 nhanesIIIP1$fpg_final = nhanesIIIP1$.fitted+nhanesIIIP1$.std.resid
 nhanesIIIP2$fpg_final = nhanesIIIP2$.fitted+nhanesIIIP2$.std.resid
 
 
-# delete unecessary columns
-nhanesII=nhanesII %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
+# delete unnecessary columns
 nhanesIIIP1=nhanesIIIP1 %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
 nhanesIIIP2=nhanesIIIP2 %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
+
+write_dta(nhanesII,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
+write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
+write_dta(nhanesIIIP2,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
 ```
