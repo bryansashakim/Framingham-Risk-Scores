@@ -1,0 +1,45 @@
+---
+title: "get_frs"
+author: "Bryan Kim"
+date: "1/21/2021"
+output: pdf_document
+---
+
+# get data with adjusted weights
+
+```{r}
+source("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Code/NHANES_continuous/load_data.R")
+
+df_list = list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
+
+print(length(df_list))
+```
+
+# return functions for computing frs
+
+```{r}
+source("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Code/NHANES_continuous/compute_frs.R")
+
+nhanes1999_2000$frs = mapply(get_frs, nhanes1999_2000$riagendr,nhanes1999_2000$ridageyr,nhanes1999_2000$hdl,nhanes1999_2000$lbxtc,nhanes1999_2000$asbp,nhanes1999_2000$curr_smq,nhanes1999_2000$fpg_reg)
+nhanes2001_2002$frs = mapply(get_frs, nhanes2001_2002$riagendr,nhanes2001_2002$ridageyr,nhanes2001_2002$hdl,nhanes2001_2002$lbxtc,nhanes2001_2002$asbp,nhanes2001_2002$curr_smq,nhanes2001_2002$fpg_reg)
+nhanes2003_2004$frs = mapply(get_frs, nhanes2003_2004$riagendr,nhanes2003_2004$ridageyr,nhanes2003_2004$hdl,nhanes2003_2004$lbxtc,nhanes2003_2004$asbp,nhanes2003_2004$curr_smq,nhanes2003_2004$fpg_reg)
+nhanes2005_2006$frs = mapply(get_frs, nhanes2005_2006$riagendr,nhanes2005_2006$ridageyr,nhanes2005_2006$hdl,nhanes2005_2006$lbxtc,nhanes2005_2006$asbp,nhanes2005_2006$curr_smq,nhanes2005_2006$fpg_reg)
+nhanes2007_2008$frs = mapply(get_frs, nhanes2007_2008$riagendr,nhanes2007_2008$ridageyr,nhanes2007_2008$hdl,nhanes2007_2008$lbxtc,nhanes2007_2008$asbp,nhanes2007_2008$curr_smq,nhanes2007_2008$fpg_reg)
+nhanes2009_2010$frs = mapply(get_frs, nhanes2009_2010$riagendr,nhanes2009_2010$ridageyr,nhanes2009_2010$hdl,nhanes2009_2010$lbxtc,nhanes2009_2010$asbp,nhanes2009_2010$curr_smq,nhanes2009_2010$fpg_reg)
+nhanes2011_2012$frs = mapply(get_frs, nhanes2011_2012$riagendr,nhanes2011_2012$ridageyr,nhanes2011_2012$hdl,nhanes2011_2012$lbxtc,nhanes2011_2012$asbp,nhanes2011_2012$curr_smq,nhanes2011_2012$fpg_reg)
+nhanes2013_2014$frs = mapply(get_frs, nhanes2013_2014$riagendr,nhanes2013_2014$ridageyr,nhanes2013_2014$hdl,nhanes2013_2014$lbxtc,nhanes2013_2014$asbp,nhanes2013_2014$curr_smq,nhanes2013_2014$fpg_reg)
+nhanes2015_2016$frs = mapply(get_frs, nhanes2015_2016$riagendr,nhanes2015_2016$ridageyr,nhanes2015_2016$hdl,nhanes2015_2016$lbxtc,nhanes2015_2016$asbp,nhanes2015_2016$curr_smq,nhanes2015_2016$fpg_reg)
+nhanes2017_2018$frs = mapply(get_frs, nhanes2017_2018$riagendr,nhanes2017_2018$ridageyr,nhanes2017_2018$hdl,nhanes2017_2018$lbxtc,nhanes2017_2018$asbp,nhanes2017_2018$curr_smq,nhanes2017_2018$fpg_reg)
+
+df_list = list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
+
+```
+
+# get frs
+
+```{r}
+# "ALL"
+lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
+lapply(df_list, function(x) print(weighted.mean(x$frs,x$wt)))
+
+```
