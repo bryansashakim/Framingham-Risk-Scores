@@ -9,16 +9,15 @@ output: pdf_document
 ##########################################
 ```{r message=FALSE}
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr);library(broom)
-
-nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
+nhanesII=read_dta("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
 ## Dropping rows where FPG values are null or inapplicable
 # nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
 # nhanesII = nhanesII %>% filter(GRADE != 0)
 ## Dropping rows where values of our risk factor variables are NA
-nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","smoke_sts","fpg")]),]
+nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","curr_smq","fpg_reg")]),]
 
 # get the weight variables
-source("/Users/bryankim/Documents/NBER/Case Deaton/Code/create_age_sex_weight_vars.R")
+#source("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Code/create_age_sex_weight_vars.R")
 
 temp=list(nhanesII)
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
@@ -179,7 +178,7 @@ nhanesIIIP2$fpg_final = nhanesIIIP2$.fitted+nhanesIIIP2$.std.resid
 nhanesIIIP1=nhanesIIIP1 %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
 nhanesIIIP2=nhanesIIIP2 %>% select(-.se.fit,-.fitted,-.resid,-.hat,-.sigma,-.cooksd,-.std.resid,-fpg_final2,-fpg_finalR2)
 
-write_dta(nhanesII,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
+write_dta(nhanesII,"/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
 write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
 write_dta(nhanesIIIP2,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
 ```

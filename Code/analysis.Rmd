@@ -121,6 +121,7 @@ temp=list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes
 
 # "ALL"
 lapply(temp, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
+lapply(temp, function(x) print(weighted.mean(x$frs,x$wt)))
 
 ##### BY EDUCATION #####
 # <HS 
