@@ -12,6 +12,9 @@ output: pdf_document
 
 ### NHANES II ###
 ```{r}
+nhanesII=read_dta("/Users/bryankim/Documents - Local/NBER/Case Deaton/Data/FRS/NHANESII/nhanesII_frs.dta")
+nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","curr_smq","fpg_reg")]),]
+
 nhanesII$frs = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$curr_smq,nhanesII$fpg_reg)
 # ALL
 weighted.mean(nhanesII$frs,nhanesII$exam_final_wt)

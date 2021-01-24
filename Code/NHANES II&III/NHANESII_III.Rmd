@@ -9,7 +9,7 @@ output: pdf_document
 ##########################################
 ```{r message=FALSE}
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr);library(broom)
-nhanesII=read_dta("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Data/nhanesII_full.dta")
+nhanesII=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanesII_full.dta")
 ## Dropping rows where FPG values are null or inapplicable
 # nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
 # nhanesII = nhanesII %>% filter(GRADE != 0)
@@ -51,6 +51,7 @@ temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(exam_final_wt)*(eval(
 
 nhanesII=temp[[1]]
 
+write_dta(nhanesII,"/Users/bryankim/Documents/TEMPORARY FILES/nhanesII_full.dta")
 
 ```
 
