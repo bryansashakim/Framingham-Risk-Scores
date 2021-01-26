@@ -1,0 +1,86 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# ATP3
+
+## NHANES Continuous
+```{r}
+nhanes1999_2000_atp3 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanes_1999_2000_frs_atp3.dta") 
+df_list = list(nhanes1999_2000_atp3)
+print(length(df_list))
+# View(nhanes1999_2000_atp3 %>% select("riagendr","ridageyr","hdl","lbxtc","asbp","curr_smq","bpq040a",frs_atp3))
+```
+
+### get scores
+```{r}
+# nhanes1999_2000_atp3$frs = mapply(get_frs, nhanes1999_2000_atp3$riagendr,nhanes1999_2000_atp3$ridageyr,nhanes1999_2000_atp3$hdl,nhanes1999_2000_atp3$lbxtc,nhanes1999_2000_atp3$asbp,nhanes1999_2000_atp3$curr_smq,nhanes1999_2000_atp3$fpg_reg)
+# nhanes1999_2000_atp3 = nhanes1999_2000_atp3 %>% filter(ridageyr <= 74)
+# df_list = list(nhanes1999_2000_atp3)
+# table(nhanes1999_2000_atp3$ridageyr)
+# lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
+# lapply(df_list, function(x) print(weighted.mean(x$frs,x$wt)))
+
+df_list = list(nhanes1999_2000_atp3,nhanes2001_2002_atp3,nhanes2003_2004_atp3,nhanes2005_2006_atp3,nhanes2007_2008_atp3,nhanes2009_2010_atp3,nhanes2011_2012_atp3,nhanes2013_2014_atp3,nhanes2015_2016_atp3,nhanes2017_2018_atp3)
+
+
+"ALL"
+lapply(df_list, function(x) print(weighted.mean(x$frs_atp3,x$wtint2yr)))
+lapply(df_list, function(x) print(weighted.mean(x$frs_atp3,x$wt)))
+
+##### BY EDUCATION #####
+# <HS 
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+
+# HS
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 == 3);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+
+# Some College
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 == 4);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+
+# College Grad
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 == 5);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+
+##### BY AGE #####
+# 45-54
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+# 55-64
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+# 65-74
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+# 75+
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=75);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+# 85+
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >= 85);print(weighted.mean(df_list$frs_atp3,df_list$wtint2yr))})
+
+## AGE-SEX ADJUSTED ##
+##### BY EDUCATION #####
+# <HS 
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 <= 2);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+
+# HS
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 == 3);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+
+# Some College
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 == 4);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+
+# College Grad
+lapply(df_list, function(x) {df_list = filter(x,x$dmdeduc2 == 5);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+
+##### BY AGE #####
+# 45-54
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=45 & x$ridageyr <=54);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+# 55-64
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=55 & x$ridageyr <=64);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+# 65-74
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=65 & x$ridageyr <=74);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+# 75+
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >=75);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+# 85+
+lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >= 85);print(weighted.mean(df_list$frs_atp3,df_list$wt))})
+
+
+```
+
+

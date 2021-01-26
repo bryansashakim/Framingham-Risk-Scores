@@ -64,6 +64,7 @@ nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesII
 
 # GROUPS
 temp1=list(nhanesIIIP1)
+temp1=list(nhanesIIIP1_atp3)
 temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
 temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
 temp1 = temp1 %>% lapply(function(x) {mutate(x, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))})
@@ -96,9 +97,10 @@ temp1[[1]] = mutate(temp1[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX1)*(eval(w_M1
                                             TRUE ~ NA_real_))
 
 nhanesIIIP1=temp1[[1]]
-
+nhanesIIIP1_atp3=temp1[[1]]
 
 temp=list(nhanesIIIP2)
+temp=list(nhanesIIIP2_atp3)
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))})
@@ -131,9 +133,13 @@ temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX2)*(eval(w_M1_2
                                             TRUE ~ NA_real_))
 
 nhanesIIIP2=temp[[1]]
+nhanesIIIP2_atp3=temp[[1]]
 
 write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
 write_dta(nhanesIIIP2,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
+
+write_dta(nhanesIIIP1_atp3,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesIII_P1x_frs_atp3.dta")
+write_dta(nhanesIIIP2_atp3,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesIII_P2x_frs_atp3.dta")
 
 ```
 

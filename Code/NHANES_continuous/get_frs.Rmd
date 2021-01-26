@@ -8,7 +8,7 @@ output: pdf_document
 # get data with adjusted weights
 
 ```{r}
-source("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Code/NHANES_continuous/load_data.R")
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES_continuous/load_data.R")
 
 df_list = list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
 
@@ -38,8 +38,14 @@ df_list = list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,n
 # get frs
 
 ```{r}
+
+df_list_atp3 = list(nhanes1999_2000_atp3,nhanes2001_2002_atp3,nhanes2003_2004_atp3,nhanes2005_2006_atp3,nhanes2007_2008_atp3,nhanes2009_2010_atp3,nhanes2011_2012_atp3,nhanes2013_2014_atp3,nhanes2015_2016_atp3,nhanes2017_2018_atp3)
+
 # "ALL"
-lapply(df_list, function(x) print(weighted.mean(x$frs,x$wtint2yr)))
-lapply(df_list, function(x) print(weighted.mean(x$frs,x$wt)))
+lapply(df_list_atp3, function(x) print(weighted.mean(x$frs_atp3,x$wtint2yr)))
+lapply(df_list_atp3, function(x) print(weighted.mean(x$frs_atp3,x$wt)))
 
 ```
+
+
+

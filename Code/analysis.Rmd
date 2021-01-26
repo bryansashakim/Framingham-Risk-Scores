@@ -251,16 +251,18 @@ temp[[2]]$asbp = temp[[2]]$bpxsar
 temp[[3]]$asbp = temp[[3]]$bpxsar
 
 temp=list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhanes2007_2008,nhanes2009_2010,nhanes2011_2012,nhanes2013_2014,nhanes2015_2016,nhanes2017_2018)
+temp=list(nhanes1999_2000_atp3)
 
 # ALL
 lapply(temp, function(x) {print(weighted.mean(x$riagendr,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$ridageyr,x$wt))})
-lapply(temp, function(x) {print(weighted.mean(x$HDL,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$hdl,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$asbp,x$wt))})
 lapply(temp, function(x) {x$isSmoker = ifelse(x$smoke_sts==1,1,0);print(weighted.mean(x$isSmoker,x$wt))})
-lapply(temp, function(x) {x$isDiabetic = ifelse(x$lbxgh < 6.5,0,1);print(weighted.mean(x$isDiabetic,x$wt))})
-lapply(temp, function(x) {x$isDiabetic = ifelse(x$imputed_fpg2 >= 126,1,0);print(weighted.mean(x$isDiabetic,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$bpq040a,x$wt))})
+
+lapply(temp, function(x) {x$isDiabetic = ifelse(x$treated >= 126,0,1);print(weighted.mean(x$isDiabetic,x$wt))})
 
 # BY EDUCATION
 lapply(temp, function(x) {x=filter(x,dmdeduc2 == 2);print(weighted.mean(x$riagendr,x$wt))})
