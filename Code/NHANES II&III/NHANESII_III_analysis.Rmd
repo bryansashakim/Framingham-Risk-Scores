@@ -4,20 +4,25 @@ author: "Bryan Kim"
 date: "1/13/2021"
 output: pdf_document
 ---
+# First get compute FRS functions
+```{r}
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES_continuous/compute_frs.R")
+```
+
 
 ########################################## 
 
-## TABS
+# TABS
 
 ########################################## 
-
+## Old Framingham
 ### NHANES II
 
 ```{r}
 library(haven)
 library(dplyr)
 
-nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESII/nhanesII_frs.dta")
+nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESII/nhanesII_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0))
 nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","curr_smq","fpg_reg")]),]
 
 nhanesII$frs = mapply(get_frs, nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$curr_smq,nhanesII$fpg_reg)
@@ -79,8 +84,15 @@ table(nhanesII$fpg,nhanesII$M1)
 ### NHANES III
 
 ```{r}
-nhanesIIIP1$frs = mapply(get_frs, nhanesIIIP1$HSSEX,nhanesIIIP1$HSAGEIR,nhanesIIIP1$HDP,nhanesIIIP1$TCP,nhanesIIIP1$PEPMNK1R,nhanesIIIP1$smoke_sts,nhanesIIIP1$fpg_final)
-nhanesIIIP2$frs = mapply(get_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$HDP,nhanesIIIP2$TCP,nhanesIIIP2$PEPMNK1R,nhanesIIIP2$smoke_sts,nhanesIIIP2$fpg_final)
+nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP1_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0))
+nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP2_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0))
+nhanesIIIP1 = nhanesIIIP1[complete.cases(nhanesIIIP1[ , c("HSSEX","HSAGEIR","hdl","lbxtc","asbp","curr_smq","fpg_reg")]),]
+nhanesIIIP2 = nhanesIIIP2[complete.cases(nhanesIIIP2[ , c("HSSEX","HSAGEIR","hdl","lbxtc","asbp","curr_smq","fpg_reg")]),]
+
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES II&III/create_wts_from_cleaned_old_nhanesIII.R")
+
+nhanesIIIP1$frs = mapply(get_frs, nhanesIIIP1$HSSEX,nhanesIIIP1$HSAGEIR,nhanesIIIP1$hdl,nhanesIIIP1$lbxtc,nhanesIIIP1$asbp,nhanesIIIP1$smoke_sts,nhanesIIIP1$fpg_reg)
+nhanesIIIP2$frs = mapply(get_frs, nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$hdl,nhanesIIIP2$lbxtc,nhanesIIIP2$asbp,nhanesIIIP2$smoke_sts,nhanesIIIP2$fpg_reg)
 
 #FOR NHANES III
 tempIII = list(nhanesIIIP1,nhanesIIIP2)
@@ -143,9 +155,9 @@ lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mea
 
 ```
 
-# ATP-3
+## ATP-3
 
-## NHANESII
+### NHANESII
 
 ```{r}
 nhanesII_atp3 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesII_frs_atp3.dta")
@@ -211,7 +223,7 @@ table(nhanesII_atp3$fpg,nhanesII_atp3$M1)
 
 ```
 
-## NHANES III
+### NHANES III
 
 ```{r}
 nhanesIIIP1_atp3 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesIII_P1x_frs_atp3.dta") %>% filter(HSAGEIR <= 74)
@@ -282,98 +294,166 @@ lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mea
 ############################################################
 ```
 
-# Pooled Cohort
+## Pooled Cohort 
 
-## equation for pooled cohort model
-
+### NHANES II
 ```{r}
-# Beta Coefficients
-##  beta coeff for females whites
-fwhite_coeff <- list(log_age = -29.799,log_agesq = 4.884,log_totchol = 13.540,log_agextotchol = -3.114,log_hdl = -13.578, log_agexhdl = 3.149,log_SBP = 2.019,curr_smq = 7.574,log_agexcurr_smq = -1.665,Diabetes = 0.661)
-##  beta coeff for males whites
-### ** __males dont have age^2 factor__ **
-mwhite_coeff <- list(log_age = 12.344,log_totchol = 11.853,log_agextotchol = -2.664,log_hdl = -7.990, log_agexhdl = 1.769	,log_SBP = 1.797,curr_smq = 7.837	,log_agexcurr_smq = -1.795,Diabetes = 0.658)
-##  beta coeff for females Blacks
-fblack_coeff <- list(log_age = 17.114,log_totchol = 0.940,log_hdl = -18.920, log_agexhdl = 4.475,log_SBP = 29.291,log_agexsbp = -6.432,curr_smq = 0.691,Diabetes = 0.874)
-##  beta coeff for males Blacks
-### ** __males dont have age^2 factor__ **
-mblack_coeff <- list(log_age = 2.469,log_totchol = 0.302,log_hdl = -0.307,log_SBP = 1.916,curr_smq = 0.549,Diabetes = 0.645)
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES_continuous/compute_frs_pooled.R")
 
-# 10-year Baseline Survival rate 
-## females
-f_base10 = 0.9665
-## males
-m_base10 = 0.9144	
+nhanesII_pooled=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/nhanesII/nhanesII_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0)) %>% filter(race != 3) 
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES II&III/create_wts_from_cleaned_pooled_nhanesII.R")
 
-# males and whites
-sum_MW = function(age,hdl,totchol,asbp,smoker,diabetic) {
-  sum = sum((mwhite_coeff[[1]]*log(age)),(mwhite_coeff[[2]]*log(totchol)),(mwhite_coeff[[3]]*log(totchol)*log(age)),(mwhite_coeff[[4]]*log(hdl)),(mwhite_coeff[[5]]*log(hdl)*log(age)),(mwhite_coeff[[6]]*log(asbp)),(mwhite_coeff[[7]]*smoker),(mwhite_coeff[[8]]*smoker*log(age)),(mwhite_coeff[[9]]*diabetic))
-  return(sum)
-}
-# males and blacks
-sum_MB = function(age,hdl,totchol,asbp,smoker,diabetic) {
-  sum = sum(mblack_coeff[[1]]*log(age),mblack_coeff[[2]]*log(totchol),mblack_coeff[[3]]*log(hdl),mblack_coeff[[4]]*log(asbp),mblack_coeff[[5]]*smoker,mblack_coeff[[6]]*diabetic)
-  return(sum)
-}
-# females and whites
-sum_FW = function(age,hdl,totchol,asbp,smoker,diabetic) {
-  sum = sum((fwhite_coeff[[1]]*log(age)),(fwhite_coeff[[2]]*log(age)^2),(fwhite_coeff[[3]]*log(totchol)),(fwhite_coeff[[4]]*log(totchol)*log(age)),(fwhite_coeff[[5]]*log(hdl)),(fwhite_coeff[[6]]*log(hdl)*log(age)),(fwhite_coeff[[7]]*log(asbp)),(fwhite_coeff[[8]]*smoker),(fwhite_coeff[[9]]*smoker*log(age)),(fwhite_coeff[[10]]*diabetic))
-  return(sum)
-}
-# females and blakcs
-sum_FB = function(age,hdl,totchol,asbp,smoker,diabetic) {
-  sum = sum((fblack_coeff[[1]]*log(age)),(fblack_coeff[[2]]*log(totchol)),(fblack_coeff[[3]]*log(hdl)),(fblack_coeff[[4]]*log(hdl)*log(age)),(fblack_coeff[[5]]*log(asbp)),(fblack_coeff[[6]]*log(asbp)*log(age)),(fblack_coeff[[7]]*smoker),(fblack_coeff[[8]]*diabetic))
-return(sum)
-  }
+nhanesII_pooled = nhanesII_pooled %>% mutate(MW = ifelse(race == 1 & SEX == 1, 1, 0))
+nhanesII_pooled = nhanesII_pooled %>% mutate(FW = ifelse(race == 1 & SEX == 2, 1, 0))
+nhanesII_pooled = nhanesII_pooled %>% mutate(MB = ifelse(race == 2 & SEX == 1, 1, 0))
+nhanesII_pooled = nhanesII_pooled %>% mutate(FB = ifelse(race == 2 & SEX == 2, 1, 0))
+# coalesce into one variable `race_sex_cat`
+nhanesII_pooled$race_sex_cat = ifelse(nhanesII_pooled$MW==1, 1, NA)
+nhanesII_pooled$race_sex_cat[nhanesII_pooled$FW == 1] = 2
+nhanesII_pooled$race_sex_cat[nhanesII_pooled$MB == 1] = 3
+nhanesII_pooled$race_sex_cat[nhanesII_pooled$FB == 1] = 4
 
+nhanesIIIP1_pooled = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP1_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0)) %>% filter(race != 3) 
+nhanesIIIP2_pooled = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP2_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0)) %>% filter(race != 3) 
 
-get_pooled_frs = function(survey,sex,race,age,hdl,totchol,asbp,smoker,diabetic) {
-  #### MALES ####
-  if (sex == 1 & race == 1) {
-   ind_sum = sum_MW(age,hdl,totchol,asbp,smoker,diabetic)#;print(ind_sum)#;print(get(paste0(survey,"_means"))[1,1])
-   int = ind_sum - get(paste0(survey,"_means"))[1,1]
-   rho = 1 - (m_base10^(exp(int)))
-  }
-  else if (sex == 1 & race == 2) {
-   ind_sum = sum_MB(age,hdl,totchol,asbp,smoker,diabetic)#;print(ind_sum)
-   int = ind_sum - get(paste0(survey,"_means"))[3,1]#;print(int);print(get(paste0(survey,"_means"))[3,1])
-   rho = 1 - (m_base10^(exp(int)))
-  }
-  #### FEMALES ####
- else if (sex==2 & race==1){
-    ind_sum = sum_FW(age,hdl,totchol,asbp,smoker,diabetic)#;print(ind_sum);print(get(paste0(survey,"_means"))[2,1])
-    int = ind_sum - get(paste0(survey,"_means"))[2,1]#;print(int)
-    rho = 1 - (f_base10^(exp(int)))
- }
-  else if (sex==2 & race==2){
-    ind_sum = sum_FB(age,hdl,totchol,asbp,smoker,diabetic)#;print(ind_sum);print(get(paste0(survey,"_means"))[4,1])
-    int = ind_sum - get(paste0(survey,"_means"))[4,1]
-    rho = 1 - (f_base10^(exp(int)))
-  }
-  
-  return(rho*100)
-}
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES II&III/create_wts_from_cleaned_pooled_nhanesIII.R")
 
-```
+nhanesIIIP1_pooled = nhanesIIIP1_pooled[complete.cases(nhanesIIIP1_pooled[ , c("HSSEX","HSAGEIR","hdl","lbxtc","asbp","curr_smq","fpg_reg")]),]
+nhanesIIIP2_pooled = nhanesIIIP2_pooled[complete.cases(nhanesIIIP2_pooled[ , c("HSSEX","HSAGEIR","hdl","lbxtc","asbp","curr_smq","fpg_reg")]),]
+nhanesIIIP1_pooled = nhanesIIIP1_pooled %>% mutate(MW = ifelse(race == 1 & HSSEX == 1, 1, 0))
+nhanesIIIP1_pooled = nhanesIIIP1_pooled %>% mutate(FW = ifelse(race == 1 & HSSEX == 2, 1, 0))
+nhanesIIIP1_pooled = nhanesIIIP1_pooled %>% mutate(MB = ifelse(race == 2 & HSSEX == 1, 1, 0))
+nhanesIIIP1_pooled = nhanesIIIP1_pooled %>% mutate(FB = ifelse(race == 2 & HSSEX == 2, 1, 0))
+# coalesce into one variable `race_sex_cat`
+nhanesIIIP1_pooled$race_sex_cat = ifelse(nhanesIIIP1_pooled$MW==1, 1, NA)
+nhanesIIIP1_pooled$race_sex_cat[nhanesIIIP1_pooled$FW == 1] = 2
+nhanesIIIP1_pooled$race_sex_cat[nhanesIIIP1_pooled$MB == 1] = 3
+nhanesIIIP1_pooled$race_sex_cat[nhanesIIIP1_pooled$FB == 1] = 4
+nhanesIIIP2_pooled = nhanesIIIP2_pooled %>% mutate(MW = ifelse(race == 1 & HSSEX == 1, 1, 0))
+nhanesIIIP2_pooled = nhanesIIIP2_pooled %>% mutate(FW = ifelse(race == 1 & HSSEX == 2, 1, 0))
+nhanesIIIP2_pooled = nhanesIIIP2_pooled %>% mutate(MB = ifelse(race == 2 & HSSEX == 1, 1, 0))
+nhanesIIIP2_pooled = nhanesIIIP2_pooled %>% mutate(FB = ifelse(race == 2 & HSSEX == 2, 1, 0))
+# coalesce into one variable `race_sex_cat`
+nhanesIIIP2_pooled$race_sex_cat = ifelse(nhanesIIIP2_pooled$MW==1, 1, NA)
+nhanesIIIP2_pooled$race_sex_cat[nhanesIIIP2_pooled$FW == 1] = 2
+nhanesIIIP2_pooled$race_sex_cat[nhanesIIIP2_pooled$MB == 1] = 3
+nhanesIIIP2_pooled$race_sex_cat[nhanesIIIP2_pooled$FB == 1] = 4
 
-## NHANES II
-```{r}
-
-nhanesII_atp3 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesII_frs_atp3.dta") %>% filter(RACE != 3) %>% mutate(isDiabetic = ifelse(fpg_reg >= 126, 1,0))
 
 # Race-Sex specific means
 source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES II&III/get_racesex_means.R")
 
-nhanesII = nhanesII %>% mutate(MW = ifelse(RACE == 1 & SEX == 1, 1, 0))
-nhanesII = nhanesII %>% mutate(FW = ifelse(RACE == 1 & SEX == 2, 1, 0))
-nhanesII = nhanesII %>% mutate(MB = ifelse(RACE == 2 & SEX == 1, 1, 0))
-nhanesII = nhanesII %>% mutate(FB = ifelse(RACE == 2 & SEX == 2, 1, 0))
-# coalesce into one variable `race_sex_cat`
-nhanesII$race_sex_cat = ifelse(nhanesII$MW==1, 1, NA)
-nhanesII$race_sex_cat[nhanesII$FW == 1] = 2
-nhanesII$race_sex_cat[nhanesII$MB == 1] = 3
-nhanesII$race_sex_cat[nhanesII$FB == 1] = 4
 
-nhanesII$pooled_frs = get_pooled_frs %>% mapply("nhanesII",nhanesII$RACE,nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$curr_smq,nhanesII$isDiabetic)
+nhanesII_pooled$pooled_frs = get_pooled_frs %>% mapply("nhanesII_pooled",nhanesII_pooled$race,nhanesII_pooled$SEX,nhanesII_pooled$AGEYR_AT_INT,nhanesII_pooled$lbdhdd,nhanesII_pooled$lbxtc,nhanesII_pooled$asbp,nhanesII_pooled$curr_smq,nhanesII_pooled$isDiabetic)
+nhanesII_pooled$pooled_frs = as.numeric(unlist(nhanesII_pooled$pooled_frs))
 
+tempII = list(nhanesII_pooled)
+length(tempII) # should be 1
+
+# ALL
+weighted.mean(nhanesII_pooled$pooled_frs,nhanesII_pooled$exam_final_wt)
+weighted.mean(nhanesII_pooled$pooled_frs,nhanesII_pooled$wt)
+
+##### BY EDUCATION #####
+# <HS 
+# <HS 
+lapply(tempII, function(x) {temp = filter(x,x$GRADE < 34);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE < 34);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# HS
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 34 & x$GRADE_COMPL == 1);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 34 & x$GRADE_COMPL == 1);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# Some College
+lapply(tempII, function(x) {temp = filter(x,x$GRADE > 34 & x$GRADE < 45);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE > 34 & x$GRADE < 45);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# College Grad
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 45);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$GRADE == 45);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+##### BY AGE #####
+# 45-54
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=45 & x$AGEYR_AT_INT <=54);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=45 & x$AGEYR_AT_INT <=54);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 55-64
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=55 & x$AGEYR_AT_INT <=64);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=55 & x$AGEYR_AT_INT <=64);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 65-74
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=65 & x$AGEYR_AT_INT <=74);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=65 & x$AGEYR_AT_INT <=74);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 75+
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=75);print(weighted.mean(temp$pooled_frs,temp$exam_final_wt))})
+lapply(tempII, function(x) {temp = filter(x,x$AGEYR_AT_INT >=75);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+
+```
+
+
+### NHANES III
+```{r}
+nhanesIIIP1_pooled$pooled_frs = get_pooled_frs %>% mapply("nhanesIIIP1_pooled",nhanesIIIP1_pooled$race,nhanesIIIP1_pooled$HSSEX,nhanesIIIP1_pooled$HSAGEIR,nhanesIIIP1_pooled$hdl,nhanesIIIP1_pooled$lbxtc,nhanesIIIP1_pooled$asbp,nhanesIIIP1_pooled$curr_smq,nhanesIIIP1_pooled$isDiabetic)
+nhanesIIIP1_pooled$pooled_frs = as.numeric(unlist(nhanesIIIP1_pooled$pooled_frs))
+nhanesIIIP2_pooled$pooled_frs = get_pooled_frs %>% mapply("nhanesIIIP2_pooled",nhanesIIIP2_pooled$race,nhanesIIIP2_pooled$HSSEX,nhanesIIIP2_pooled$HSAGEIR,nhanesIIIP2_pooled$hdl,nhanesIIIP2_pooled$lbxtc,nhanesIIIP2_pooled$asbp,nhanesIIIP2_pooled$curr_smq,nhanesIIIP2_pooled$isDiabetic)
+nhanesIIIP2_pooled$pooled_frs = as.numeric(unlist(nhanesIIIP2_pooled$pooled_frs))
+
+#FOR NHANES III
+tempIII = list(nhanesIIIP1_pooled,nhanesIIIP2_pooled)
+tempIIIP1 = list(nhanesIIIP1_pooled)
+tempIIIP2 = list(nhanesIIIP2_pooled)
+
+length(tempIII) # should be 2
+
+# ALL
+weighted.mean(nhanesIIIP1_pooled$pooled_frs,nhanesIIIP1_pooled$WTPFQX1)
+weighted.mean(nhanesIIIP1_pooled$pooled_frs,nhanesIIIP1_pooled$wt)
+weighted.mean(nhanesIIIP2_pooled$pooled_frs,nhanesIIIP2_pooled$WTPFQX2)
+weighted.mean(nhanesIIIP2_pooled$pooled_frs,nhanesIIIP2_pooled$wt)
+
+##### BY EDUCATION #####
+# <HS 
+# <HS 
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$pooled_frs,temp$WTPFQX1))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R <= 11);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# HS
+lapply(tempIIIP1, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$pooled_frs,temp$wt))})
+lapply(tempIIIP2, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R == 12);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# Some College
+lapply(tempIIIP1, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$pooled_frs,temp$WTPFQX1))})
+lapply(tempIIIP2, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R > 12 & x$HFA8R < 16);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# College Grad
+lapply(tempIIIP1, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$pooled_frs,temp$WTPFQX1))})
+lapply(tempIIIP2, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HFA8R >= 16);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+##### BY AGE #####
+# 45-54
+lapply(tempIIIP1, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$pooled_frs,temp$WTPFQX1))})
+lapply(tempIIIP2, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=45 & x$HSAGEIR <=54);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 55-64
+lapply(tempIIIP1, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$pooled_frs,temp$WTPFQX1))})
+lapply(tempIIIP2, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=55 & x$HSAGEIR <=64);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 65-74
+lapply(tempIIIP1, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$pooled_frs,temp$WTPFQX1))})
+lapply(tempIIIP2, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$pooled_frs,temp$WTPFQX2))})
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=65 & x$HSAGEIR <=74);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 75+
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >=75);print(weighted.mean(temp$pooled_frs,temp$wt))})
+
+# 85+
+lapply(tempIII, function(x) {temp = filter(x,x$HSAGEIR >= 85);print(weighted.mean(temp$pooled_frs,temp$wt))})
 ```

@@ -83,4 +83,3 @@ lapply(df_list, function(x) {df_list = filter(x,x$ridageyr >= 85);print(weighted
 
 ```
 
-

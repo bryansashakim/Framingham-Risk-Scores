@@ -21,27 +21,33 @@ get_race_sex_sums = function(race,sex,age,hdl,totchol,asbp,smoker,diabetic) {
   return(sum)
 }
 
-nhanesII$race_sex_sum = get_race_sex_sums %>% mapply(nhanesII$RACE,nhanesII$SEX,nhanesII$AGEYR_AT_INT,nhanesII$lbdhdd,nhanesII$lbxtc,nhanesII$asbp,nhanesII$curr_smq,nhanesII$isDiabetic)
-View(nhanesII %>% select(RACE,SEX,AGEYR_AT_INT,lbdhdd,lbxtc,asbp,curr_smq,isDiabetic,race_sex_cat,race_sex_sum))
-nhanesII_means = nhanesII %>%
+nhanesII_pooled$race_sex_sum = get_race_sex_sums %>% mapply(nhanesII_pooled$race,nhanesII_pooled$SEX,nhanesII_pooled$AGEYR_AT_INT,nhanesII_pooled$lbdhdd,nhanesII_pooled$lbxtc,nhanesII_pooled$asbp,nhanesII_pooled$curr_smq,nhanesII_pooled$isDiabetic)
+nhanesII_pooled_means = nhanesII_pooled %>%
   group_by(race_sex_cat) %>%
   summarise_at(vars(race_sex_sum),              # Specify column
                list(name = mean))
-nhanesII_means=nhanesII_means[,2]
+nhanesII_pooled_means=nhanesII_pooled_means[,2]
 
-nhanesIIIP1IP1$race_sex_sum = get_race_sex_sums %>% mapply(nhanesIIIP1$SEX,nhanesIIIP1$AGEYR_AT_INT,nhanesIIIP1$lbdhdd,nhanesIIIP1$lbxtc,nhanesIIIP1$asbp,nhanesIIIP1$curr_smq,nhanesIIIP1$isDiabetic)
-nhanesIIIP1_means = nhanesIIIP1 %>%
+nhanesIIIP1_pooled$race_sex_sum = get_race_sex_sums %>% mapply(nhanesIIIP1_pooled$race,nhanesIIIP1_pooled$HSSEX,nhanesIIIP1_pooled$HSAGEIR,nhanesIIIP1_pooled$hdl,nhanesIIIP1_pooled$lbxtc,nhanesIIIP1_pooled$asbp,nhanesIIIP1_pooled$curr_smq,nhanesIIIP1_pooled$isDiabetic)
+nhanesIIIP1_pooled_means = nhanesIIIP1_pooled %>%
   group_by(race_sex_cat) %>%
   summarise_at(vars(race_sex_sum),              # Specify column
                list(name = mean)) 
-nhanesIIIP1_means=nhanesIIIP1_means[,2]
+nhanesIIIP1_pooled_means=nhanesIIIP1_pooled_means[,2]
 
-nhanesIIIP2IP1$race_sex_sum = get_race_sex_sums %>% mapply(nhanesIIIP2$HSSEX,nhanesIIIP2$HSAGEIR,nhanesIIIP2$HDP,nhanesIIIP2$TCP,nhanesIIIP2$asbp,nhanesIIIP2$curr_smq,nhanesIIIP2$isDiabetic)
-nhanesIIIP2_means = nhanesIIIP2 %>%
+nhanesIIIP2_pooled$race_sex_sum = get_race_sex_sums %>% mapply(nhanesIIIP2_pooled$race,nhanesIIIP2_pooled$HSSEX,nhanesIIIP2_pooled$HSAGEIR,nhanesIIIP2_pooled$hdl,nhanesIIIP2_pooled$lbxtc,nhanesIIIP2_pooled$asbp,nhanesIIIP2_pooled$curr_smq,nhanesIIIP2_pooled$isDiabetic)
+nhanesIIIP2_pooled = nhanesIIIP2_pooled %>% filter(!is.na(race_sex_cat))
+nhanesIIIP2_pooled$race_sex_sum2 = 0
+for (i in 1:length(nhanesIIIP2_pooled$race_sex_sum)) {
+  nhanesIIIP2_pooled$race_sex_sum2[i] = nhanesIIIP2_pooled$race_sex_sum[[i]]
+}
+nhanesIIIP2_pooled$race_sex_sum = nhanesIIIP2_pooled$race_sex_sum2
+
+nhanesIIIP2_pooled_means = nhanesIIIP2_pooled %>%
   group_by(race_sex_cat) %>%
   summarise_at(vars(race_sex_sum),              # Specify column
                list(name = mean)) 
-nhanesIIIP2_means=nhanesIIIP2_means[,2]
+nhanesIIIP2_pooled_means=nhanesIIIP2_pooled_means[,2]
 
 
 

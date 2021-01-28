@@ -1,8 +1,8 @@
 ### Required packages ###
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr)
 ### Parameters ###
-f_base10 = 0.95012 # baseline 10-year survival for females
-m_base10 = 0.88936 # baseline 10-year survival for males
+#f_base10 = 0.95012 # baseline 10-year survival for females
+#m_base10 = 0.88936 # baseline 10-year survival for males
 
 f_rf <- list(log_age = 2.32888, log_hdl = -0.70833,log_totchol = 1.20904,log_SBP = 2.82263,Smoking = 0.52873,Diabetes = 0.69154) #  log of hazard ratio for each risk factor for females
 m_rf <- list(log_age = 3.06117, log_hdl = -0.93263,log_totchol = 1.12370,log_SBP = 1.99881,Smoking = 0.65451,Diabetes = 0.57367) #  log of hazard ratio for each risk factor for males 
@@ -76,7 +76,7 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
 #### ATP3 ####
 ##############
 
-f_points=data.frame("points"=seq(-3,12),
+f_points_ATP3=data.frame("points"=seq(-3,12),
                     "age_low"=c(NA,NA,NA,30,NA,35,NA,40,45,NA,50,55,60,65,70,75),
                     "age_high"=c(NA,NA,NA,34,NA,39,NA,44,49,NA,54,59,64,69,74,120),
                     "HDL_low"=c(NA,60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),
@@ -87,7 +87,7 @@ f_points=data.frame("points"=seq(-3,12),
                     "SBP_high"=c(NA,NA,120,NA,NA,NA,129,139,NA,149,159,1000,NA,NA,NA,NA), 
                     "Smoker"=c(NA,NA,NA,"No",NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA,NA), 
                     "Diabetic"=c(NA,NA,NA,"No",NA,NA,NA,"Yes",NA,NA,NA,NA,NA,NA,NA,NA))
-m_points=data.frame("points"=seq(-2,15),
+m_points_ATP3=data.frame("points"=seq(-2,15),
                     "age_low"=c(NA,NA,30,NA,35,NA,NA,40,45,NA,50,NA,55,60,65,NA,70,75),
                     "age_high"=c(NA,NA,34,NA,39,NA,NA,44,49,NA,54,NA,59,64,69,NA,74,120),
                     "HDL_low"=c(60,50,45,35,0,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),
@@ -104,16 +104,16 @@ get_frs_atp3 = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
   #### MALES ####
   if (riagendr == 1) {
     ## GET POINTS FROM AGE ##
-    i=sapply(ridageyr, function(p) { which(m_points$age_low <= p & m_points$age_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_age <<- keep_df[[1]]
+    i=sapply(ridageyr, function(p) { which(m_points_ATP3$age_low <= p & m_points_ATP3$age_high >= p)}); keep_df=m_points_ATP3[-(setdiff(1:length(m_points_ATP3$points),i)),];m_age <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]]) 
     ## GET POINTS FROM HDL ##
-    i=sapply(HDL, function(p) { which(m_points$HDL_low <= p & m_points$HDL_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_HDL <<- keep_df[[1]]
+    i=sapply(HDL, function(p) { which(m_points_ATP3$HDL_low <= p & m_points_ATP3$HDL_high >= p)}); keep_df=m_points_ATP3[-(setdiff(1:length(m_points_ATP3$points),i)),];m_HDL <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]])
     ## GET POINTS FROM TOTAL CHOLESTEROL ##
-    i=sapply(TotChol, function(p) { which(m_points$TotChol_low <= p & m_points$TotChol_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_TotChol <<- keep_df[[1]]
+    i=sapply(TotChol, function(p) { which(m_points_ATP3$TotChol_low <= p & m_points_ATP3$TotChol_high >= p)}); keep_df=m_points_ATP3[-(setdiff(1:length(m_points_ATP3$points),i)),];m_TotChol <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]])
     ## GET POINTS FROM SBP ##
-    i=sapply(sbp, function(p) { which(m_points$SBP_low <= p & m_points$SBP_high >= p)}); keep_df=m_points[-(setdiff(1:length(m_points$points),i)),];m_SBP <<- keep_df[[1]]
+    i=sapply(sbp, function(p) { which(m_points_ATP3$SBP_low <= p & m_points_ATP3$SBP_high >= p)}); keep_df=m_points_ATP3[-(setdiff(1:length(m_points_ATP3$points),i)),];m_SBP <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]])
     ## GET POINTS FROM SMOKER ##
     if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
@@ -126,16 +126,16 @@ get_frs_atp3 = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
   #### FEMALES ####
   else {
     ## GET POINTS FROM AGE ##
-    i=sapply(ridageyr, function(p) { which(f_points$age_low <= p & f_points$age_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_age <<- keep_df[[1]]
+    i=sapply(ridageyr, function(p) { which(f_points_ATP3$age_low <= p & f_points_ATP3$age_high >= p)}); keep_df=f_points_ATP3[-(setdiff(1:length(f_points_ATP3$points),i)),];f_age <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]]) 
     ## GET POINTS FROM HDL ##
-    i=sapply(HDL, function(p) { which(f_points$HDL_low <= p & f_points$HDL_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_HDL <<- keep_df[[1]]
+    i=sapply(HDL, function(p) { which(f_points_ATP3$HDL_low <= p & f_points_ATP3$HDL_high >= p)}); keep_df=f_points_ATP3[-(setdiff(1:length(f_points_ATP3$points),i)),];f_HDL <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]])
     ## GET POINTS FROM TOTAL CHOLESTEROL ##
-    i=sapply(TotChol, function(p) { which(f_points$TotChol_low <= p & f_points$TotChol_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_TotChol <<- keep_df[[1]]
+    i=sapply(TotChol, function(p) { which(f_points_ATP3$TotChol_low <= p & f_points_ATP3$TotChol_high >= p)}); keep_df=f_points_ATP3[-(setdiff(1:length(f_points_ATP3$points),i)),];f_TotChol <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]])
     ## GET POINTS FROM SBP ##
-    i=sapply(sbp, function(p) { which(f_points$SBP_low <= p & f_points$SBP_high >= p)}); keep_df=f_points[-(setdiff(1:length(f_points$points),i)),];f_SBP <<- keep_df[[1]]
+    i=sapply(sbp, function(p) { which(f_points_ATP3$SBP_low <= p & f_points_ATP3$SBP_high >= p)}); keep_df=f_points_ATP3[-(setdiff(1:length(f_points_ATP3$points),i)),];f_SBP <<- keep_df[[1]]
     list_pts=append(list_pts,keep_df[[1]])
     ## GET POINTS FROM SMOKER ##
     if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}

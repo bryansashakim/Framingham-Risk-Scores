@@ -10,10 +10,7 @@ output: pdf_document
 ```{r message=FALSE}
 library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr);library(broom)
 nhanesII=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanesII_full.dta")
-## Dropping rows where FPG values are null or inapplicable
-# nhanesII = nhanesII %>% filter(fpg != 777 & fpg!= 888 & fpg != 999)
-# nhanesII = nhanesII %>% filter(GRADE != 0)
-## Dropping rows where values of our risk factor variables are NA
+
 nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","curr_smq","fpg_reg")]),]
 
 # get the weight variables
@@ -111,12 +108,12 @@ temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(HSAGEIR >= 55 & HSAGEI
 temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 1, 1, 0))})
 temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 2, 1, 0))})
 # 75+, MALES & FEMALES
-temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
+#temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
+#temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
 
 year="nhanesIIIP2"
  for (sex in c("M","F")) {
-    for (cat in c(1,2,3,4)) {
+    for (cat in c(1,2,3)) {
       assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(WTPFQX2) %>% sum)
   }
   }
@@ -128,8 +125,8 @@ temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX2)*(eval(w_M1_2
                                             F2 == 1 ~ eval(WTPFQX2)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesIIIP2))),
                                             M3 == 1 ~ eval(WTPFQX2)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesIIIP2))),
                                             F3 == 1 ~ eval(WTPFQX2)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesIIIP2))),
-                                            M4 == 1 ~ eval(WTPFQX2)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP2))),
-                                            F4 == 1 ~ eval(WTPFQX2)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP2))),
+                                            #M4 == 1 ~ eval(WTPFQX2)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP2))),
+                                            #F4 == 1 ~ eval(WTPFQX2)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP2))),
                                             TRUE ~ NA_real_))
 
 nhanesIIIP2=temp[[1]]
