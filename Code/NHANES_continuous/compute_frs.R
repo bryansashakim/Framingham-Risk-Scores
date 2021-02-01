@@ -42,8 +42,8 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
     if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
     # m_smoke <<- 4
     ## GET POINTS FROM DIABETIC ##
-    # if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
-    if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,3)} else {list_pts=append(list_pts,0)}
+    if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+    #if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,3)} else {list_pts=append(list_pts,0)}
     # m_diabetic <<- 3
   }
   #### FEMALES ####
@@ -64,8 +64,8 @@ get_frs = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
     if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
     # f_smoke <<- 3
     ## GET POINTS FROM DIABETIC ##
-    # if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
-    if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,4)} else {list_pts=append(list_pts,0)}
+    if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+    #if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,4)} else {list_pts=append(list_pts,0)}
     # f_diabetic <<- 4
   }
   return(sum(list_pts))
@@ -119,8 +119,8 @@ get_frs_atp3 = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
     if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
     # m_smoke <<- 4
     ## GET POINTS FROM DIABETIC ##
-    # if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
-    if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,3)} else {list_pts=append(list_pts,0)}
+    if (isTRUE(diabetic < 6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
+    #if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,3)} else {list_pts=append(list_pts,0)}
     # m_diabetic <<- 3
   }
   #### FEMALES ####
@@ -141,8 +141,8 @@ get_frs_atp3 = function(riagendr,ridageyr,HDL,TotChol,sbp,smoker,diabetic) {
     if (isTRUE(smoker == 2)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,3)}
     # f_smoke <<- 3
     ## GET POINTS FROM DIABETIC ##
-    # if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
-    if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,4)} else {list_pts=append(list_pts,0)}
+    if (isTRUE(diabetic <  6.5)) {list_pts=append(list_pts,0)} else {list_pts=append(list_pts,4)}
+    #if (isTRUE(diabetic >= 126)) {list_pts=append(list_pts,4)} else {list_pts=append(list_pts,0)}
     # f_diabetic <<- 4
   }
   return(sum(list_pts))

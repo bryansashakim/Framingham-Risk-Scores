@@ -4,141 +4,28 @@ author: "Bryan Kim"
 date: "1/12/2021"
 output: pdf_document
 ---
-##########################################
-##               NHANES II              ##
-##########################################
-```{r message=FALSE}
-library(ggplot2); library(dplyr); library(tidyr);library(haven);library(readstata13);library(foreign);library(mice);library(MatchIt);library(stringdist);library(RecordLinkage);library(modelr);library(broom)
-nhanesII=read_dta("/Users/bryankim/Documents/TEMPORARY FILES/nhanesII_full.dta")
 
-nhanesII = nhanesII[complete.cases(nhanesII[ , c("SEX","AGEYR_AT_INT","lbdhdd","lbxtc","asbp","curr_smq","fpg_reg")]),]
+# Create Weights
 
-# get the weight variables
-#source("/Users/bryankim/Library/Mobile Documents/com~apple~CloudDocs/Documents/NBER/Case Deaton/Code/create_age_sex_weight_vars.R")
-
-temp=list(nhanesII)
-temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(AGEYR_AT_INT >= 45 & AGEYR_AT_INT <= 54 & SEX == 2, 1, 0))})
-# 55-64, MALES & FEMALES
-temp = temp %>% lapply(function(x) {mutate(x, M2 = ifelse(AGEYR_AT_INT >= 55 & AGEYR_AT_INT <= 64 & SEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(AGEYR_AT_INT >= 55 & AGEYR_AT_INT <= 64 & SEX == 2, 1, 0))})
-# 65-74, MALES & FEMALES
-temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(AGEYR_AT_INT >= 65 & AGEYR_AT_INT <= 74 & SEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(AGEYR_AT_INT >= 65 & AGEYR_AT_INT <= 74 & SEX == 2, 1, 0))})
-# 75+, MALES & FEMALES
-temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(AGEYR_AT_INT >= 75 & SEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(AGEYR_AT_INT >= 75 & SEX == 2, 1, 0))})
-
-year="nhanesII"
-  for (sex in c("M","F")) {
-    for (cat in c(1,2,3)) {
-      assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(exam_final_wt) %>% sum)
-  }
-  }
-
-
-temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(exam_final_wt)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesII))),
-                                            F1 == 1 ~ eval(exam_final_wt)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesII))),
-                                            M2 == 1 ~ eval(exam_final_wt)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesII))),
-                                            F2 == 1 ~ eval(exam_final_wt)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesII))),
-                                            M3 == 1 ~ eval(exam_final_wt)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesII))),
-                                            F3 == 1 ~ eval(exam_final_wt)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesII))),
-                                            TRUE ~ NA_real_))
-
-nhanesII=temp[[1]]
-
-write_dta(nhanesII,"/Users/bryankim/Documents/TEMPORARY FILES/nhanesII_full.dta")
-
-```
-
-##########################################
-##               NHANES III             ##
-##########################################
 ```{r}
-nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
-nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES_continuous/load_data.R")
 
-# GROUPS
-temp1=list(nhanesIIIP1)
-temp1=list(nhanesIIIP1_atp3)
-temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
-temp1 = temp1 %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
-temp1 = temp1 %>% lapply(function(x) {mutate(x, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))})
-# 55-64, MALES & FEMALES
-temp1 = temp1 %>% lapply(function(x) {mutate(x, M2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 1, 1, 0))})
-temp1 = temp1 %>% lapply(function(x) {mutate(x, F2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 2, 1, 0))})
-# 65-74, MALES & FEMALES
-temp1 = temp1 %>% lapply(function(x) {mutate(x, M3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 1, 1, 0))})
-temp1 = temp1 %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 2, 1, 0))})
-# 75+, MALES & FEMALES
-temp1 = temp1 %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
-temp1 = temp1 %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
+nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESII/nhanesII_frs_old.dta")
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES II&III/create_wts_from_cleaned_old_nhanesII.R")
 
-year="nhanesIIIP1"
- for (sex in c("M","F")) {
-    for (cat in c(1,2,3,4)) {
-      assign(paste("w_",sex,cat,"_",year,sep = ""),temp1[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(WTPFQX1) %>% sum)
-  }
-  }
+write_dta(nhanesII,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESII/nhanesII_frs_old.dta")
 
 
-temp1[[1]] = mutate(temp1[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX1)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesIIIP1))),
-                                            F1 == 1 ~ eval(WTPFQX1)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesIIIP1))),
-                                            M2 == 1 ~ eval(WTPFQX1)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesIIIP1))),
-                                            F2 == 1 ~ eval(WTPFQX1)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesIIIP1))),
-                                            M3 == 1 ~ eval(WTPFQX1)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesIIIP1))),
-                                            F3 == 1 ~ eval(WTPFQX1)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesIIIP1))),
-                                            M4 == 1 ~ eval(WTPFQX1)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP1))),
-                                            F4 == 1 ~ eval(WTPFQX1)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP1))),
-                                            TRUE ~ NA_real_))
+nhanesIIIP1 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP1_frs_old.dta")
+nhanesIIIP2 = read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP2_frs_old.dta")
 
-nhanesIIIP1=temp1[[1]]
-nhanesIIIP1_atp3=temp1[[1]]
+source("/Users/bryankim/Documents/NBER/Case Deaton/Code/NHANES II&III/create_wts_from_cleaned_old_nhanesIII.R")
 
-temp=list(nhanesIIIP2)
-temp=list(nhanesIIIP2_atp3)
-temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, M1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F1 = ifelse(HSAGEIR >= 45 & HSAGEIR <= 54 & HSSEX == 2, 1, 0))})
-# 55-64, MALES & FEMALES
-temp = temp %>% lapply(function(x) {mutate(x, M2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F2 = ifelse(HSAGEIR >= 55 & HSAGEIR <= 64 & HSSEX == 2, 1, 0))})
-# 65-74, MALES & FEMALES
-temp = temp %>% lapply(function(x) {mutate(x, M3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 1, 1, 0))})
-temp = temp %>% lapply(function(x) {mutate(x, F3 = ifelse(HSAGEIR >= 65 & HSAGEIR <= 74 & HSSEX == 2, 1, 0))})
-# 75+, MALES & FEMALES
-#temp = temp %>% lapply(function(x) {mutate(x, M4 = ifelse(HSAGEIR >= 75 & HSSEX == 1, 1, 0))})
-#temp = temp %>% lapply(function(x) {mutate(x, F4 = ifelse(HSAGEIR >= 75 & HSSEX == 2, 1, 0))})
-
-year="nhanesIIIP2"
- for (sex in c("M","F")) {
-    for (cat in c(1,2,3)) {
-      assign(paste("w_",sex,cat,"_",year,sep = ""),temp[[1]] %>% filter(eval(parse(text = paste(sex,cat,sep=""))) == 1) %>% select(WTPFQX2) %>% sum)
-  }
-  }
-
-
-temp[[1]] = mutate(temp[[1]],wt = case_when(M1 == 1 ~ eval(WTPFQX2)*(eval(w_M1_2009_2010)/(eval(w_M1_nhanesIIIP2))),
-                                            F1 == 1 ~ eval(WTPFQX2)*(eval(w_F1_2009_2010)/(eval(w_F1_nhanesIIIP2))),
-                                            M2 == 1 ~ eval(WTPFQX2)*(eval(w_M2_2009_2010)/(eval(w_M2_nhanesIIIP2))),
-                                            F2 == 1 ~ eval(WTPFQX2)*(eval(w_F2_2009_2010)/(eval(w_F2_nhanesIIIP2))),
-                                            M3 == 1 ~ eval(WTPFQX2)*(eval(w_M3_2009_2010)/(eval(w_M3_nhanesIIIP2))),
-                                            F3 == 1 ~ eval(WTPFQX2)*(eval(w_F3_2009_2010)/(eval(w_F3_nhanesIIIP2))),
-                                            #M4 == 1 ~ eval(WTPFQX2)*(eval(w_M4_2009_2010)/(eval(w_M4_nhanesIIIP2))),
-                                            #F4 == 1 ~ eval(WTPFQX2)*(eval(w_F4_2009_2010)/(eval(w_F4_nhanesIIIP2))),
-                                            TRUE ~ NA_real_))
-
-nhanesIIIP2=temp[[1]]
-nhanesIIIP2_atp3=temp[[1]]
-
-write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P1x_frs.dta")
-write_dta(nhanesIIIP2,"/Users/bryankim/Documents/NBER/Case Deaton/Data/nhanesIII_P2x_frs.dta")
-
-write_dta(nhanesIIIP1_atp3,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesIII_P1x_frs_atp3.dta")
-write_dta(nhanesIIIP2_atp3,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/ATP3/nhanesIII_P2x_frs_atp3.dta")
+write_dta(nhanesIIIP1,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP1_frs_old.dta")
+write_dta(nhanesIIIP2,"/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESIII/nhanesIIIP2_frs_old.dta")
 
 ```
+
 
 #################################
 ## INPUTING MISSING FPG values ##

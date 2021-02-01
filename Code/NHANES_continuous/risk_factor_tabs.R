@@ -6,14 +6,14 @@ temp = list(nhanes1999_2000,nhanes2001_2002,nhanes2003_2004,nhanes2005_2006,nhan
 #temp=list(nhanes1999_2000)
 
 # ALL
-lapply(temp, function(x) {print(weighted.mean(x$riagendr,x$wt))})
-lapply(temp, function(x) {print(weighted.mean(x$ridageyr,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$sex,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$age,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$hdl,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$asbp,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$curr_smq,x$wt))})
 lapply(temp, function(x) {print(weighted.mean(x$isDiabetic,x$wt))})
-lapply(temp, function(x) {print(weighted.mean(x$fpg_reg,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$fpg,x$wt))})
 
 ## NHANESII
 nhanesII=read_dta("/Users/bryankim/Documents/NBER/Case Deaton/Data/FRS/Old Framingham/NHANESII/nhanesII_frs_old.dta") %>% mutate(isDiabetic = ifelse(fpg_reg >= 126,1,0))

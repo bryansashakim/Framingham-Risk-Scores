@@ -1,3 +1,40 @@
+# Old Framingham
+
+## NHANES II
+temp=list(nhanesII)
+# ALL
+lapply(temp, function(x) {print(weighted.mean(x$sex,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$age,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$hdl,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$curr_smq,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$isDiabetic,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$fpg,x$wt))})
+
+## NHANES III
+temp=list(nhanesIIIP1)
+# ALL
+lapply(temp, function(x) {print(weighted.mean(x$sex,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$age,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$hdl,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$curr_smq,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$isDiabetic,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$fpg,x$wt))})
+
+temp=list(nhanesIIIP2)
+# ALL
+lapply(temp, function(x) {print(weighted.mean(x$sex,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$age,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$hdl,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$lbxtc,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$asbp,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$curr_smq,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$isDiabetic,x$wt))})
+lapply(temp, function(x) {print(weighted.mean(x$fpg,x$wt))})
+
 
 
 
